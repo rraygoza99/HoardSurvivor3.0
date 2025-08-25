@@ -95,3 +95,17 @@ func register_player(playerName: String):
 	players[remoteSenderId] = playerName
 	player_list_changed.emit()
 	pass
+
+# Helper function to broadcast an enemy spawn to all clients
+# This should be called by enemy spawners when they need to replicate enemies
+@rpc("authority", "call_remote")
+func broadcast_enemy_spawn(position: Vector3, rotation: Vector3):
+	print("SteamNetworking: broadcast_enemy_spawn called")
+	
+	# Find all EnemySpawnerNode nodes in the scene
+	var spawners = get_tree().get_nodes_in_group("EnemySpawner")
+	if spawners.size() > 0:
+		print("Found ", spawners.size(), " enemy spawners")
+		spawners[0].spawn_enemy_network(position, rotation)
+	else:
+		print("ERROR: No enemy spawners found in the scene")

@@ -1,8 +1,8 @@
 extends Area3D
 
+@export var networking : SteamNetworking
 @export var spawn_location: Array[Marker3D]
 @export var enemy_spawn_node: Node3D
-
 var _enemy_scene = preload("res://features/enemies/dummy_enemy/dummy_enemy.tscn")
 var _rng := RandomNumberGenerator.new()
 
@@ -25,7 +25,9 @@ func _ready():
 		timer.timeout.connect(_create_enemy)
 
 func _create_enemy():
-	var enemy_to_spawn = _enemy_scene.instantiate()
+	var packedEnemy: PackedScene = load("res://features/enemies/dummy_enemy/dummy_enemy.tscn")
+	var enemy_to_spawn: Node3D = packedEnemy.instantiate()
+
 	if spawn_location.is_empty():
 		return
 	var idx := _rng.randi_range(0, spawn_location.size() - 1)
@@ -34,8 +36,10 @@ func _create_enemy():
 	var time_to_live = _create_death_timer()
 	# Remove the enemy after the TTL; use a valid callable.
 	time_to_live.timeout.connect(enemy_to_spawn.queue_free)
-	enemy_to_spawn.add_child(time_to_live)
-	_enemy_spawner.add_child(enemy_to_spawn, true)
+	
+	enemy_spawn_node.add_child(enemy_to_spawn, true)
+	spawn_enemy.rpc(enemy_to_spawn.position)
+	
 
 func _create_death_timer() -> Timer:
 	var time_to_live = Timer.new()
@@ -43,3 +47,15 @@ func _create_death_timer() -> Timer:
 	time_to_live.one_shot = true
 	time_to_live.autostart = true
 	return time_to_live
+
+@rpc("any_peer")
+func spawn_enemy(startPos: Vector3):
+	print("Spawning enemy at: ", startPos)
+	var packedEnemy: PackedScene = load("res://features/enemies/dummy_enemy/dummy_enemy.tscn")
+	var enemy_to_spawn: Node3D = packedEnemy.instantiate()
+	enemy_to_spawn.position = startPos
+	var time_to_live = _create_death_timer()
+	# Remove the enemy after the TTL; use a valid callable.
+	time_to_live.timeout.connect(enemy_to_spawn.queue_free)
+	enemy_spawn_node.add_child(enemy_to_spawn, true)
+	pass
