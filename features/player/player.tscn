@@ -41,6 +41,5 @@ mesh = SubResource("BoxMesh_ylgix")
 replication_config = SubResource("SceneReplicationConfig_qly03")
 
 [node name="PlayerCamera" parent="." node_paths=PackedStringArray("_player") instance=ExtResource("2_qqsef")]
-transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0, 15, 3.5)
 top_level = true
 _player = NodePath("..")

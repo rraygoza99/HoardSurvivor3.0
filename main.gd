@@ -10,7 +10,7 @@ signal player_teleport(position: Vector3);
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	Steam.steamInit(true, 480);
+	Steam.steamInit(true, 3965800);
 	
 	networking.playerSteamId = Steam.getSteamID();
 	networking.playerSteamName = Steam.getPersonaName();

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b66mrj8jmqun3"]
+
+[node name="EnemiesSpawner" type="Area3D"]
+
+[node name="EnemySpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://c6f0y857061ik")
