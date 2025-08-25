@@ -1,0 +1,46 @@
+[gd_scene load_steps=8 format=3 uid="uid://cf5ndkucsb2ga"]
+
+[ext_resource type="Script" uid="uid://cccdvex77xvui" path="res://features/player/Player.cs" id="1_xumkq"]
+[ext_resource type="PackedScene" uid="uid://jgtt4rluxfpa" path="res://features/player/player_camera.tscn" id="2_qqsef"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0g2wm"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_3t27e"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0irvf"]
+albedo_color = Color(0.721808, 0, 0.228113, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ylgix"]
+material = SubResource("StandardMaterial3D_0irvf")
+size = Vector3(0.2, 0.2, 0.5)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_qly03"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("_synchronizer", "_camera")]
+script = ExtResource("1_xumkq")
+_synchronizer = NodePath("MultiplayerSynchronizer")
+_camera = NodePath("PlayerCamera")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_0g2wm")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_3t27e")
+
+[node name="DirectionBox" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.498893, -0.579225)
+mesh = SubResource("BoxMesh_ylgix")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_qly03")
+
+[node name="PlayerCamera" parent="." node_paths=PackedStringArray("_player") instance=ExtResource("2_qqsef")]
+transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0, 15, 3.5)
+top_level = true
+_player = NodePath("..")

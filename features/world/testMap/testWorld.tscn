@@ -1,0 +1,44 @@
+[gd_scene load_steps=6 format=3 uid="uid://deok6m4sw04ca"]
+
+[ext_resource type="Script" uid="uid://bfvl8kl5igens" path="res://features/world/testMap/test_world.gd" id="1_kx1tt"]
+[ext_resource type="PackedScene" uid="uid://dkppwqp6okv65" path="res://features/world/sky/world_environment.tscn" id="1_pk70n"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mf2l"]
+albedo_color = Color(0.0056274, 0.485383, 0, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_dsc87"]
+material = SubResource("StandardMaterial3D_6mf2l")
+size = Vector2(50, 50)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1qr10"]
+size = Vector3(50, 1, 50)
+
+[node name="TestWorld" type="Node3D" node_paths=PackedStringArray("spawnLocations")]
+script = ExtResource("1_kx1tt")
+spawnLocations = [NodePath("SpawnLocation"), NodePath("SpawnLocation2"), NodePath("SpawnLocation3"), NodePath("SpawnLocation4"), NodePath("SpawnLocation5")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("PlaneMesh_dsc87")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_1qr10")
+
+[node name="WorldEnvironment" parent="." instance=ExtResource("1_pk70n")]
+
+[node name="SpawnLocation" type="Marker3D" parent="."]
+
+[node name="SpawnLocation2" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+
+[node name="SpawnLocation3" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+
+[node name="SpawnLocation4" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+
+[node name="SpawnLocation5" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
