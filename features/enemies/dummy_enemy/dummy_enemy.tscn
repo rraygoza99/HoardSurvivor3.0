@@ -1,8 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://c6f0y857061ik"]
+[gd_scene load_steps=4 format=3 uid="uid://c6f0y857061ik"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_33hni"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xdkki"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_33hni"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
 
 [node name="DummyEnemy" type="CharacterBody3D"]
 
@@ -11,3 +16,6 @@ mesh = SubResource("BoxMesh_33hni")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_xdkki")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_33hni")
