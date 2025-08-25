@@ -7,6 +7,7 @@ class_name Main
 signal game_started;
 signal game_ended;
 signal player_teleport(position: Vector3);
+signal enemy_teleport(position: Vector3);
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
