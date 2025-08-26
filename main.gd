@@ -43,16 +43,11 @@ func start_game():
 		
 	print("Found ", spawnCount, " spawn positions")
 	
-	# First, make sure all clients have the world loaded
 	for player in networking.players:
+		# Make sure clients load the world first
 		if player != multiplayer.get_unique_id():
 			load_world.rpc_id(player)
-	
-	# Wait a bit to ensure worlds are loaded before spawning players
-	await get_tree().create_timer(0.5).timeout
-	
-	# Then spawn all players
-	for player in networking.players:
+		
 		# Get a unique spawn position with wraparound if needed
 		var startPos: Vector3
 		if spawnLocation < spawnCount:
@@ -68,12 +63,6 @@ func start_game():
 		load_player.rpc_id(player, player, startPos)
 		teleport_player.rpc_id(player, startPos)
 		spawnLocation += 1
-		
-		# If this is the server's player, we need to make sure clients know about it too
-		if player == multiplayer.get_unique_id():
-			for other_player in networking.players:
-				if other_player != player:
-					spawn_player.rpc_id(other_player, networking.playerSteamName, startPos)
 	pass
 
 @rpc("call_local")
@@ -86,13 +75,9 @@ func load_player(peerId: int, startPos: Vector3):
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	
-	# Notify all other players about this player
-	# But only do this for the local player to avoid duplicates
-	if multiplayer.get_unique_id() == peerId:
-		for other_peer_id in multiplayer.get_peers():
-			if other_peer_id != peerId:
-				spawn_player.rpc_id(other_peer_id, networking.playerSteamName, startPos)
-		
+	# Only send spawn_player RPC if this is the local player
+	# This avoids duplicate spawning
+	if peerId == multiplayer.get_unique_id():
 		game_started.emit()
 	
 	print("Player ", peerId, " loaded")
@@ -109,22 +94,14 @@ func load_world():
 
 @rpc("any_peer")
 func spawn_player(steamName: String, startPos: Vector3):
+	print("Spawning remote Player: ", steamName)
 	var senderId := multiplayer.get_remote_sender_id()
-	print("Spawning remote Player: ", steamName, " (ID: ", senderId, ") at position ", startPos)
-	
-	# Check if the player already exists (to prevent duplicates)
-	var existingPlayer = world.playersContainer.get_node_or_null(str(senderId))
-	if existingPlayer:
-		print("Player ", senderId, " already exists, not spawning again")
-		return
-		
 	var packedPlayer: PackedScene = load("res://features/player/player.tscn")
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(senderId)
 	playerScene.MultiplayerAuthority = senderId
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
-	print("Remote player ", senderId, " added successfully")
 	pass
 	
 @rpc("call_local")

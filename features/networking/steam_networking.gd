@@ -82,81 +82,10 @@ func _on_lobby_play_requested():
 	pass
 
 func _on_peer_connected(peerId):
-	print("Peer connected: ", peerId)
-	# Let the new peer know about us
 	register_player.rpc_id(peerId, playerSteamName)
-	
-	# If we are the server and a game is in progress, make sure the new player gets added
-	if multiplayer.is_server() and is_instance_valid(main.world):
-		print("Server detected new player, checking if game is in progress...")
-		# If the world exists, the game has started
-		# Schedule the new player to be added to the game
-		await get_tree().create_timer(1.0).timeout
-		_add_late_joining_player(peerId)
 	pass
 
-func _add_late_joining_player(peerId):
-	if not multiplayer.is_server():
-		return
-		
-	print("Adding late-joining player: ", peerId)
-	
-	# Find a spawn position
-	var map = main.world.get_node_or_null("TestWorld")
-	if not map or not "spawnLocations" in map:
-		print("ERROR: Map not found or doesn't have spawn locations")
-		return
-		
-	var spawnPositions = map.spawnLocations
-	if spawnPositions.size() == 0:
-		print("ERROR: No spawn positions available")
-		return
-		
-	# Choose a random spawn position
-	var spawnPoint = spawnPositions[randi() % spawnPositions.size()]
-	var startPos = spawnPoint.global_position
-	
-	# Load the world for this player
-	main.load_world.rpc_id(peerId)
-	
-	# Wait a bit for the world to load
-	await get_tree().create_timer(0.5).timeout
-	
-	# Spawn the player
-	main.load_player.rpc_id(peerId, peerId, startPos)
-	main.teleport_player.rpc_id(peerId, startPos)
-	
-	# Inform this player about all existing players
-	for existing_player in players:
-		if existing_player != peerId and existing_player != multiplayer.get_unique_id():
-			# Find the existing player's position
-			var existing_player_node = main.world.playersContainer.get_node_or_null(str(existing_player))
-			if existing_player_node:
-				var pos = existing_player_node.global_position
-				# Tell the new player about this existing player
-				main.spawn_player.rpc_id(peerId, players[existing_player], pos)
-	
-	# And inform all existing players about this new player
-	for existing_player in players:
-		if existing_player != peerId:
-			main.spawn_player.rpc_id(existing_player, players[peerId], startPos)
-
-func _on_peer_disconnected(peerId):
-	print("Peer disconnected: ", peerId)
-	
-	# Remove the player from our dictionary
-	if players.has(peerId):
-		var playerName = players[peerId]
-		print("Player ", playerName, " (", peerId, ") disconnected")
-		players.erase(peerId)
-		player_list_changed.emit()
-		
-		# If a game is in progress, remove their character too
-		if is_instance_valid(main.world):
-			var player_node = main.world.playersContainer.get_node_or_null(str(peerId))
-			if player_node:
-				print("Removing player node for disconnected player")
-				player_node.queue_free()
+func _on_peer_disconnected():
 	pass
 
 @rpc("any_peer", "call_local")
