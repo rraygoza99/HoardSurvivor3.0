@@ -76,7 +76,7 @@ func start_game():
 		# If this is the server's player, we need to make sure clients know about it too
 		for other_player in networking.players:
 			if other_player != player:
-				spawn_player.rpc_id(other_player, networking.playerSteamName, startPos)
+				spawn_player.rpc_id(other_player, player, networking.players[player], startPos)
 	pass
 
 @rpc("call_local")
@@ -92,6 +92,9 @@ func load_player(peerId: int, startPos: Vector3):
 	# Notify all other players about this player
 	# But only do this for the local player to avoid duplicates
 	if multiplayer.get_unique_id() == peerId:
+		for other_peer_id in multiplayer.get_peers():
+			if other_peer_id != peerId:
+				spawn_player.rpc_id(other_peer_id, networking.playerSteamName, startPos)
 		game_started.emit()
 	
 	print("Player ", peerId, " loaded")
