@@ -50,33 +50,30 @@ func start_game():
 	
 	# Wait a bit to ensure worlds are loaded before spawning players
 	await get_tree().create_timer(0.5).timeout
-	var player_positions = {}
-	var plasyersArray = networking.players.keys()
+	
 	# Then spawn all players
-	for i in range(plasyersArray.size()):
-		var player = plasyersArray[i]
-		var spawnIndex = i % spawnCount
-
-		var startPos: Vector3
-		if spawnIndex < spawnCount:
-			startPos = spawnPositions[spawnIndex].global_position
-		else:
-			var basePos = spawnPositions[spawnIndex % spawnCount].global_position
-			startPos = Vector3(basePos.x + (spawnIndex * 1.5), basePos.y, basePos.z + (spawnIndex * 1.5))
-		player_positions[player] = startPos
-		print("Player ", player, " will spawn at ", startPos)
-
 	for player in networking.players:
 		# Get a unique spawn position with wraparound if needed
-		var startPos = player_positions[player]
+		var startPos: Vector3
+		if spawnLocation < spawnCount:
+			startPos = spawnPositions[spawnLocation].global_position
+		else:
+			# If we run out of unique positions, add a small offset to avoid exact overlaps
+			var basePos = spawnPositions[spawnLocation % spawnCount].global_position
+			startPos = Vector3(basePos.x + (spawnLocation * 1.5), basePos.y, basePos.z + (spawnLocation * 1.5))
+		
 		print("Spawning player ", player, " at position ", startPos)
+		
 		# Load the player for this peer with their specific spawn position
 		load_player.rpc_id(player, player, startPos)
 		teleport_player.rpc_id(player, startPos)
+		spawnLocation += 1
+		
 		# If this is the server's player, we need to make sure clients know about it too
-		for other_player in networking.players:
-			if other_player != player:
-				spawn_player.rpc_id(other_player, player, networking.players[player], startPos)
+		if player == multiplayer.get_unique_id():
+			for other_player in networking.players:
+				if other_player != player:
+					spawn_player.rpc_id(other_player, networking.playerSteamName, startPos)
 	pass
 
 @rpc("call_local")
@@ -95,6 +92,7 @@ func load_player(peerId: int, startPos: Vector3):
 		for other_peer_id in multiplayer.get_peers():
 			if other_peer_id != peerId:
 				spawn_player.rpc_id(other_peer_id, networking.playerSteamName, startPos)
+		
 		game_started.emit()
 	
 	print("Player ", peerId, " loaded")
@@ -110,23 +108,23 @@ func load_world():
 	pass
 
 @rpc("any_peer")
-func spawn_player(playerId: int, steamName: String, startPos: Vector3):
+func spawn_player(steamName: String, startPos: Vector3):
 	var senderId := multiplayer.get_remote_sender_id()
 	print("Spawning remote Player: ", steamName, " (ID: ", senderId, ") at position ", startPos)
 	
 	# Check if the player already exists (to prevent duplicates)
-	var existingPlayer = world.playersContainer.get_node_or_null(str(playerId))
+	var existingPlayer = world.playersContainer.get_node_or_null(str(senderId))
 	if existingPlayer:
-		print("Player ", playerId, " already exists, not spawning again")
+		print("Player ", senderId, " already exists, not spawning again")
 		return
 		
 	var packedPlayer: PackedScene = load("res://features/player/player.tscn")
 	var playerScene: Node3D = packedPlayer.instantiate()
-	playerScene.name = str(playerId)
-	playerScene.MultiplayerAuthority = playerId
+	playerScene.name = str(senderId)
+	playerScene.MultiplayerAuthority = senderId
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
-	print("Remote player ", playerId, " added successfully")
+	print("Remote player ", senderId, " added successfully")
 	pass
 	
 @rpc("call_local")
