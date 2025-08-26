@@ -51,13 +51,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
 script = ExtResource("4_d6eqb")
 spawn_location = [NodePath("../SpawnLocation"), NodePath("../SpawnLocation2")]
 enemy_spawn_node = NodePath("../Enemies")
-
-[node name="spawnLocations" type="Node" parent="."]
-
-[node name="SpawnLocation" type="Marker3D" parent="spawnLocations"]
-
-[node name="SpawnLocation2" type="Marker3D" parent="spawnLocations"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-
-[node name="SpawnLocation3" type="Marker3D" parent="spawnLocations"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
