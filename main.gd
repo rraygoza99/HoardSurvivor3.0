@@ -35,31 +35,13 @@ func start_game():
 	world.add_child(mapScene)
 
 	var spawnPositions: Array[Marker3D] = mapScene.spawnLocations;	
-	var spawnCount := spawnPositions.size()
-	
-	if spawnCount == 0:
-		print("ERROR: No spawn positions found in the map!")
-		return
-		
-	print("Found ", spawnCount, " spawn positions")
-	
+
 	for player in networking.players:
-		# Make sure clients load the world first
 		if player != multiplayer.get_unique_id():
 			load_world.rpc_id(player)
+			
+		var startPos := spawnPositions[spawnLocation].global_position;
 		
-		# Get a unique spawn position with wraparound if needed
-		var startPos: Vector3
-		if spawnLocation < spawnCount:
-			startPos = spawnPositions[spawnLocation].global_position
-		else:
-			# If we run out of unique positions, add a small offset to avoid exact overlaps
-			var basePos = spawnPositions[spawnLocation % spawnCount].global_position
-			startPos = Vector3(basePos.x + (spawnLocation * 1.5), basePos.y, basePos.z + (spawnLocation * 1.5))
-		
-		print("Spawning player ", player, " at position ", startPos)
-		
-		# Load the player for this peer with their specific spawn position
 		load_player.rpc_id(player, player, startPos)
 		teleport_player.rpc_id(player, startPos)
 		spawnLocation += 1
@@ -67,7 +49,7 @@ func start_game():
 
 @rpc("call_local")
 func load_player(peerId: int, startPos: Vector3):
-	print("Loading player ", peerId, " at position ", startPos)
+	print("Loading player..")
 	var packedPlayer: PackedScene = load("res://features/player/player.tscn")
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(peerId)
@@ -75,12 +57,10 @@ func load_player(peerId: int, startPos: Vector3):
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	
-	# Only send spawn_player RPC if this is the local player
-	# This avoids duplicate spawning
-	if peerId == multiplayer.get_unique_id():
-		game_started.emit()
+	spawn_player.rpc(networking.playerSteamName, startPos)
 	
-	print("Player ", peerId, " loaded")
+	game_started.emit()
+	print("Player loaded..")
 	pass
 
 @rpc("call_local")
