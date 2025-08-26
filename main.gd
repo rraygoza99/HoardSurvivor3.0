@@ -51,10 +51,11 @@ func start_game():
 	# Wait a bit to ensure worlds are loaded before spawning players
 	await get_tree().create_timer(0.5).timeout
 	var player_positions = {}
+	var plasyersArray = networking.players.keys()
 	# Then spawn all players
-	for i in range(networking.players.size()):
-		var player = networking.players[i]
-		var spawnIndex = i% spawnCount
+	for i in range(plasyersArray.size()):
+		var player = plasyersArray[i]
+		var spawnIndex = i % spawnCount
 
 		var startPos: Vector3
 		if spawnIndex < spawnCount:
