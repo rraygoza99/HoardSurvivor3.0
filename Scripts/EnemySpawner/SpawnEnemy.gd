@@ -38,8 +38,7 @@ func _create_enemy():
 	time_to_live.timeout.connect(enemy_to_spawn.queue_free)
 	
 	enemy_spawn_node.add_child(enemy_to_spawn, true)
-	spawn_enemy.rpc(enemy_to_spawn.position)
-	
+	spawn_enemy.rpc(enemy_to_spawn.position, enemy_to_spawn.rotation)
 
 func _create_death_timer() -> Timer:
 	var time_to_live = Timer.new()
@@ -49,11 +48,15 @@ func _create_death_timer() -> Timer:
 	return time_to_live
 
 @rpc("any_peer")
-func spawn_enemy(startPos: Vector3):
+func spawn_enemy(startPos: Vector3, startRot: Vector3):
 	print("Spawning enemy at: ", startPos)
+	if not multiplayer.is_server():
+		print("Not the server, cannot spawn enemy.")
+		return
 	var packedEnemy: PackedScene = load("res://features/enemies/dummy_enemy/dummy_enemy.tscn")
 	var enemy_to_spawn: Node3D = packedEnemy.instantiate()
 	enemy_to_spawn.position = startPos
+	enemy_to_spawn.rotation = startRot
 	var time_to_live = _create_death_timer()
 	# Remove the enemy after the TTL; use a valid callable.
 	time_to_live.timeout.connect(enemy_to_spawn.queue_free)

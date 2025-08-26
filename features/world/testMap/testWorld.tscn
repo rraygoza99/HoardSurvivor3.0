@@ -49,5 +49,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
 
 [node name="EnemiesSpawner" parent="." node_paths=PackedStringArray("spawn_location", "enemy_spawn_node") instance=ExtResource("3_8su4o")]
 script = ExtResource("4_d6eqb")
-spawn_location = [NodePath("../SpawnLocation"), NodePath("../SpawnLocation2"), NodePath("../SpawnLocation3"), NodePath("../SpawnLocation4")]
+spawn_location = [NodePath("../SpawnLocation"), NodePath("../SpawnLocation2")]
 enemy_spawn_node = NodePath("../Enemies")
