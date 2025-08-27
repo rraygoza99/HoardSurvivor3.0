@@ -1,27 +1,30 @@
 using System.Collections.Generic;
+using Godot;
+using HoardSurvivor3._0.features.characters.@base;
 
-namespace HoardSurvivor3.0.Features.Player.Characters.Types
+namespace HoardSurvivor3._0.Features.Player.Characters.Types
 {
     public class Wizgod : Base.Character
     {
         public Wizgod() : base(
             "Wizgod", 
             new CharacterStats(
-                maxHealth: 150f,
-                moveSpeed: 5f,
-                spellPower: 1.2f,
-                cooldownReduction: 0.1f,
-                critChanceBonus: 0.05f,
-                critDamageBonus: 0.2f,
-                areaOfEffectBonus: 0.15f
-            ))
+                150f,    // MaxHealth
+                150f,    // CurrentHealth
+                5f,      // MoveSpeed
+                1.2f,    // SpellPower
+                0.1f,    // CooldownReduction
+                0.05f,   // CritChanceBonus
+                0.2f,    // CritDamageBonus
+                0.15f    // AreaOfEffectBonus
+            )
+        )
         {
         }
-
         protected override void InitializeStartingSpells()
         {
             // Add starting spells for Wizgod
-            AddSpell(new FireballSpell());
+            
         }
     }
 }

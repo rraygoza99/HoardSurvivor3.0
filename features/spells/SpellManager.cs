@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using HoardSurvivor3._0.Features.Spells.Base;
 
-namespace HoardSurvivor3.0.Features.Spells
+namespace HoardSurvivor3._0.Features.Spells
 {
     public class SpellManager
     {

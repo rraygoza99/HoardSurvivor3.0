@@ -5,6 +5,7 @@ namespace SteamMultiplayer.features.player;
 public class PlayerInputs
 {
     private Player _player;
+    private PlayerController _playerController;
     public Vector2 Direction { get; private set; }
     public bool IsMoving => !Direction.IsZeroApprox();
     
@@ -17,7 +18,10 @@ public class PlayerInputs
     {
         _player = player;
     }
-    
+    public PlayerInputs(PlayerController playerController)
+    {
+        _playerController = playerController;
+    }
     /// <summary>
     /// Call this in _process to handle active input processes
     /// </summary>

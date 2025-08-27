@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using SteamMultiplayer.features.characters.@base;
+using HoardSurvivor3._0.features.characters.@base;
+using HoardSurvivor3._0.Features.Spells.Base;
 
 namespace HoardSurvivor3._0.Features.Player.Characters.Base
 {
@@ -9,7 +10,7 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Base
         public CharacterStats Stats { get; protected set; }
         public List<ISpell> Spells { get; protected set; }
 
-        protected Character(string name, Charactertats stats)
+        protected Character(string name, CharacterStats stats)
         {
             Name = name;
             Stats = stats;
@@ -28,11 +29,12 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Base
         {
             Spells.Remove(spell);
         }
-        public virtual void UpdateSpellCooldowns(float deltaTime){
+        public virtual void UpdateSpellCooldowns(float deltaTime)
+        {
             foreach (var spell in Spells)
             {
                 spell.UpdateCooldown(deltaTime);
-            } 
+            }
         }
         public void CastSpell(int index)
         {
@@ -44,6 +46,26 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Base
                     spell.Cast();
                 }
             }
+        }
+        public void TakeDamage(int amount)
+        {
+            Stats.CurrentHealth -= amount;
+            if (Stats.CurrentHealth < 0)
+            {
+                Stats.CurrentHealth = 0;
+            }
+        }
+        public void Heal(int amount)
+        {
+            Stats.CurrentHealth += amount;
+            if (Stats.CurrentHealth > Stats.MaxHealth)
+            {
+                Stats.CurrentHealth = Stats.MaxHealth;
+            }
+        }
+        public string GetCharacterInfo()
+        {
+            return $"Name: {Name}, Health: {Stats.CurrentHealth}/{Stats.MaxHealth}, Move Speed: {Stats.MoveSpeed}";
         }
     }
 }

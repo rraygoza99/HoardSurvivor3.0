@@ -1,6 +1,7 @@
 using System;
-using Features.Player.Characters.Base;
-using Core.Enums;
+using HoardSurvivor3._0.Features.Player.Characters.Base;
+using HoardSurvivor3._0.Core.Enums;
+using HoardSurvivor3._0.Features.Player.Characters.Types;
 
 namespace Core.Factories
 {

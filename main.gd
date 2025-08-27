@@ -50,7 +50,7 @@ func start_game():
 @rpc("call_local")
 func load_player(peerId: int, startPos: Vector3):
 	print("Loading player..")
-	var packedPlayer: PackedScene = load("res://features/player/player.tscn")
+	var packedPlayer: PackedScene = load("res://features/player/characters/scenes/Wizgod.tscn")
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(peerId)
 	playerScene.MultiplayerAuthority = peerId

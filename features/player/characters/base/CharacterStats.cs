@@ -1,6 +1,6 @@
 using Godot;
 
-namespace SteamMultiplayer.features.characters.@base
+namespace HoardSurvivor3._0.features.characters.@base
 {
     public class CharacterStats
     {
@@ -15,7 +15,7 @@ namespace SteamMultiplayer.features.characters.@base
 
         public CharacterStats(float maxHealth, float moveSpeed, float spellPower, 
                               float cooldownReduction, float critChanceBonus, 
-                              float critDamageBonus, float areaOfEffectBonus)
+                              float critDamageBonus, float areaOfEffectBonus, float v)
         {
             MaxHealth = maxHealth;
             CurrentHealth = maxHealth;
