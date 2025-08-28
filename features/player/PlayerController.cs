@@ -1,5 +1,6 @@
 using Godot;
 using HoardSurvivor3._0.Features.Player.Characters.Base;
+using HoardSurvivor3._0.Features.Player.Characters.Types;
 using SteamMultiplayer.features.player;
 
 public partial class PlayerController : CharacterBody3D
@@ -13,6 +14,7 @@ public partial class PlayerController : CharacterBody3D
     private AnimationTree _animationTree;
     private PlayerInputs _playerInputs;
     public Vector3 StartPosition { get; set; }
+    [Export] private Node3D _playerModel;
 
     private Godot.Vector3 direction = Godot.Vector3.Zero;
 
@@ -37,7 +39,7 @@ public partial class PlayerController : CharacterBody3D
     public override void _Ready()
     {
         var isMultiplayerAuthority = IsMultiplayerAuthority();
-
+        Initialize(new Wizgod());
         SetProcess(isMultiplayerAuthority);
         SetPhysicsProcess(isMultiplayerAuthority);
 
@@ -51,37 +53,58 @@ public partial class PlayerController : CharacterBody3D
         var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
     }
+    public override void _Process(double delta)
+    {
+        _playerInputs.Handler();
+    }
     public override void _PhysicsProcess(double delta)
     {
-        if (character == null)
-            return;
         Godot.Vector3 velocity = Velocity;
         if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
+        {
+            velocity += GetGravity() * (float)delta;
+        }
+        _playerInputs.Handler();
         UpdateMovement(delta);
     }
 
     private void UpdateMovement(double delta)
     {
-        Godot.Vector2 inputDir = Input.GetVector("Right", "Left", "Down", "Up");
-        direction = new Godot.Vector3(inputDir.X, 0, inputDir.Y).Normalized();
-        bool isMoving = inputDir != Godot.Vector2.Zero;
-        if (isMoving)
-        {
-            Velocity = new Godot.Vector3(direction.X * moveSpeed, Velocity.Y, direction.Z * moveSpeed);
-            LookAt(Position + direction);
-            _animationTree.Set("parameters/conditions/Run", true);
+        Vector3 velocity = Velocity;    
+        if (!IsOnFloor())
+		{
+			velocity += GetGravity() * (float)delta;
+		}
+        
+        if (!IsOnFloor())
+		{
+			velocity += GetGravity() * (float)delta;
+		}
+		
+		// Get the input direction and handle the movement/deceleration.
+		// As good practice, you should replace UI actions with custom gameplay actions.
+		Vector3 direction = _playerInputs.CalculatedDirection;
+		if (_playerInputs.IsMoving)
+		{
+			velocity.X = direction.X * moveSpeed;
+			velocity.Z = direction.Z * moveSpeed;
+
+            Vector3 lookTarget = GlobalPosition + _playerInputs.CalculatedDirection;
+            _playerModel.LookAt(lookTarget);
+			_animationTree.Set("parameters/conditions/Run", true);
 			_animationTree.Set("parameters/conditions/Idle", false);
-        }
-        else
-        {
-            Velocity = new Godot.Vector3(Mathf.MoveToward(Velocity.X, 0, moveSpeed), Velocity.Y, Mathf.MoveToward(Velocity.Z, 0, moveSpeed));
-            _animationTree.Set("parameters/conditions/Run", false);
-			_animationTree.Set("parameters/conditions/Idle", true);
-        }
-        MoveAndSlide();
+		}
+		else
+		{
+			velocity.X = Mathf.MoveToward(Velocity.X, 0, moveSpeed);
+			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, moveSpeed);
+			_animationTree.Set("parameters/conditions/Run", false);
+            _animationTree.Set("parameters/conditions/Idle", true);
+		}
+
+		Velocity = velocity;
+		MoveAndSlide();
+        
     }
     private void OnPlayerTeleport(Vector3 newPosition)
 	{

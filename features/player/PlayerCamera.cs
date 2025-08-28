@@ -6,7 +6,7 @@ public partial class PlayerCamera : Camera3D
 {
 	[Export] private Player _player;
 	[Export] private PlayerController _playerController;
-
+	
 	public override void _Ready()
 	{
 		// Only enable the camera for the local player
@@ -39,7 +39,7 @@ public partial class PlayerCamera : Camera3D
 				// Make this camera the current one for the local player
 				Current = true;
 			}
-		}	
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -60,4 +60,5 @@ public partial class PlayerCamera : Camera3D
 			}
 		}
 	}
+	
 }
