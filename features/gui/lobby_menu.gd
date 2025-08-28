@@ -12,20 +12,28 @@ class_name LobbyMenu
 
 @export var lobbyPlayersList: LobbyPlayersList
 
+signal lobby_leave_requested
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	joinButton.pressed.connect(
 		func():
-			Steam.joinLobby(lobbyList.selectedRow.id)
-			lobbies.hide()
-			waitingRoom.show()
+			if(lobbyList.selectedRow != null):
+				Steam.joinLobby(lobbyList.selectedRow.id)
+				lobbies.hide()
+				waitingRoom.show()
 	)
 	hostButton.pressed.connect(
 		func():
 			lobbies.hide()
 			waitingRoom.show()
 	)
-	
+	leaveButton.pressed.connect(
+		func():
+			emit_signal("lobby_leave_requested")
+			lobbies.show()
+			waitingRoom.hide()
+	)
 	lobbies.show()
 	waitingRoom.hide()
 	pass # Replace with function body.

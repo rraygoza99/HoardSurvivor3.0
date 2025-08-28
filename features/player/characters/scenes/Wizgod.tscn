@@ -53,7 +53,7 @@ parameters/conditions/Run = false
 transform = Transform3D(-0.425, 0, -3.71547e-08, 0, 0.425, 0, 3.71547e-08, 0, -0.425, 0, -0.835598, 0)
 
 [node name="Skeleton3D" parent="wizgod/Armature" index="0"]
-bones/0/position = Vector3(0, 0.042801, 0)
+bones/0/position = Vector3(0, 0.0812535, 0)
 bones/2/rotation = Quaternion(-0.0717056, 0.218485, -0.515083, 0.825719)
 bones/3/rotation = Quaternion(0.231546, 0.0786488, 0.544741, 0.802158)
 bones/5/rotation = Quaternion(0.2371, 0.0327054, 0.0725419, 0.968221)
@@ -64,7 +64,7 @@ bones/11/rotation = Quaternion(0.275047, 0.0499251, 0.313407, 0.907542)
 bones/12/rotation = Quaternion(0.467845, 0.0448147, 0.127088, 0.873476)
 bones/14/rotation = Quaternion(-7.66735e-09, -6.46097e-08, 0.0127238, 0.999919)
 bones/15/rotation = Quaternion(-0.0958158, 3.14991e-08, 0.0201295, 0.995196)
-bones/17/rotation = Quaternion(0.236813, -0.838444, 0.469683, 0.142579)
+bones/17/rotation = Quaternion(0.258178, -0.830994, 0.458287, 0.181015)
 bones/18/rotation = Quaternion(-0.0602773, 0.3418, -0.496151, 0.795848)
 bones/20/rotation = Quaternion(0.514149, -0.277517, -0.15197, 0.797208)
 bones/21/rotation = Quaternion(0.391427, -0.0853492, -0.539359, 0.74067)
@@ -78,10 +78,10 @@ bones/32/position = Vector3(0, 0.100126, 0)
 bones/34/rotation = Quaternion(3.55271e-15, -7.10543e-15, 2.11758e-22, 1)
 bones/35/rotation = Quaternion(3.55271e-15, -3.55271e-15, 2.11758e-22, 1)
 bones/36/rotation = Quaternion(-1.26441e-07, -7.30555e-08, -0.707107, 0.707107)
-bones/37/position = Vector3(0, 2.53774, 0)
+bones/37/position = Vector3(0, 2.57654, 0)
 bones/41/rotation = Quaternion(-0.147088, -0.18035, -0.494355, 0.837528)
 bones/44/rotation = Quaternion(-0.151022, -0.185173, -0.507577, 0.82781)
-bones/45/position = Vector3(1.99754, 0.353708, 0.401134)
+bones/45/position = Vector3(1.99754, 0.366239, 0.401134)
 bones/45/rotation = Quaternion(-0.00327835, -1.14955e-06, -3.53861e-07, 0.999995)
 bones/46/position = Vector3(0, 0.100126, 0)
 bones/48/rotation = Quaternion(3.55271e-15, 7.10543e-15, -2.11758e-22, 1)
@@ -89,7 +89,6 @@ bones/49/rotation = Quaternion(3.55271e-15, 3.55271e-15, -2.11758e-22, 1)
 bones/50/rotation = Quaternion(-1.26441e-07, 7.30555e-08, 0.707107, 0.707107)
 
 [node name="PlayerCamera" parent="." node_paths=PackedStringArray("_playerController") instance=ExtResource("3_1fepk")]
-transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0, 15, 3.5)
 _playerController = NodePath("..")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

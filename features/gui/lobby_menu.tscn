@@ -11,10 +11,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -23.5
-offset_right = 20.0
-offset_bottom = 23.5
+offset_left = -164.0
+offset_top = -179.0
+offset_right = 236.0
+offset_bottom = 71.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_djr71")
@@ -114,3 +114,13 @@ text = "Play
 [node name="Leave" type="Button" parent="WaitingRoom/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Leave"
+
+[node name="MenuOptions" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MenuOptions"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="MenuOptions/HBoxContainer"]
+layout_mode = 2

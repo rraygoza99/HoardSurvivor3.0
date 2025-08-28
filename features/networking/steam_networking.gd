@@ -19,8 +19,10 @@ signal player_list_changed;
 func _ready() -> void:
 	gui.lobby_host_requested.connect(createSteamLobby)
 	gui.lobby_play_requested.connect(_on_lobby_play_requested);
+	gui.lobby_leave_requested.connect(leaveSteamLobby);
 	
 	Steam.lobby_joined.connect(_on_lobby_joined);
+	Steam.lobby_kicked.connect(_on_lobby_left);
 	Steam.lobby_created.connect(_on_lobby_created);
 	
 	multiplayer.peer_connected.connect(_on_peer_connected);
@@ -44,6 +46,15 @@ func connectSteamSocket(remoteSteamId):
 
 func createSteamLobby(lobbyType: Steam.LobbyType, maxPlayers: int):
 	Steam.createLobby(lobbyType, maxPlayers)
+	pass
+
+func leaveSteamLobby():
+	if(lobbyId != 0):
+		Steam.leaveLobby(lobbyId)
+		lobbyId = 0
+	else:
+		print("Not in a lobby")
+		_on_lobby_left()
 	pass
 
 func _on_lobby_created(connection: int, id: int):
@@ -74,6 +85,15 @@ func _on_lobby_joined(targetLobbyId, _permissions, _locked, response):
 	
 	connectSteamSocket(lobbyOwnerId);
 	players[multiplayer.get_unique_id()] = playerSteamName
+	player_list_changed.emit()
+	pass
+func _on_lobby_left():
+	print("Left lobby..")
+	# Cleanup multiplayer peer
+	if multiplayer.multiplayer_peer:
+		multiplayer.multiplayer_peer = null
+		peer = SteamMultiplayerPeer.new()
+	players.clear()
 	player_list_changed.emit()
 	pass
 

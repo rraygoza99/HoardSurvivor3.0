@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3 uid="uid://cof8u14h8sbvb"]
+
+[ext_resource type="Script" path="res://features/gui/MageSelection/MageItem.gd" id="1_rcrqk"]
+
+[node name="MageItem" type="VBoxContainer"]
+custom_minimum_size = Vector2(120, 150)
+script = ExtResource("1_rcrqk")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SelectButton" type="Button" parent="."]
+layout_mode = 2
+text = "Select"
+
+[connection signal="pressed" from="SelectButton" to="." method="_on_select_button_pressed"]

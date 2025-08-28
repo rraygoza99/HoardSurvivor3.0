@@ -1,0 +1,45 @@
+[gd_scene load_steps=2 format=3 uid="uid://k8ialvwemhgu"]
+
+[ext_resource type="Script" uid="uid://tv146xxxs7vw" path="res://features/gui/Menu/lobby_options.gd" id="1_rmqej"]
+
+[node name="LobbyOptions" type="PanelContainer" node_paths=PackedStringArray("playButton", "magesButton", "optionsButton")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -952.0
+offset_bottom = -598.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rmqej")
+playButton = NodePath("MarginContainer/HBoxContainer/PlayerContainer/PlayerButton")
+magesButton = NodePath("MarginContainer/HBoxContainer/MagesContainer/MagesButton")
+optionsButton = NodePath("MarginContainer/HBoxContainer/OptionsContainer/OptionsButton")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="PlayerContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerButton" type="Button" parent="MarginContainer/HBoxContainer/PlayerContainer"]
+layout_mode = 2
+text = "Play
+"
+
+[node name="MagesContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="MagesButton" type="Button" parent="MarginContainer/HBoxContainer/MagesContainer"]
+layout_mode = 2
+text = "Mages
+"
+
+[node name="OptionsContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="OptionsButton" type="Button" parent="MarginContainer/HBoxContainer/OptionsContainer"]
+layout_mode = 2
+text = "Options..."

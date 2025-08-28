@@ -1,0 +1,112 @@
+[gd_scene load_steps=6 format=3 uid="uid://csm3u5bnski5b"]
+
+[ext_resource type="Script" uid="uid://bkibcwb0mfi52" path="res://features/gui/MageSelection/MageSelection.gd" id="1_m8gfq"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_i2ioc"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_o4lyl"]
+sky_material = SubResource("ProceduralSkyMaterial_i2ioc")
+
+[sub_resource type="Environment" id="Environment_uoa7e"]
+background_mode = 2
+sky = SubResource("Sky_o4lyl")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="World3D" id="World3D_5cjpo"]
+environment = SubResource("Environment_uoa7e")
+
+[node name="MageSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 127.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_m8gfq")
+
+[node name="MageModelViewport" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 600.0
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="MageModelViewport"]
+world_3d = SubResource("World3D_5cjpo")
+handle_input_locally = false
+size = Vector2i(600, 521)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="MageModelViewport/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 3)
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="MageModelViewport/SubViewport"]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
+shadow_enabled = true
+
+[node name="MageModelContainer" type="Node3D" parent="MageModelViewport/SubViewport"]
+transform = Transform3D(-0.91706, 0, -0.398749, 0, 1, 0, 0.398749, 0, -0.91706, 0, 0, 0)
+
+[node name="MageInfo" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -150.0
+offset_right = -555.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MageInfo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MageName" type="Label" parent="MageInfo/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Mage Name"
+horizontal_alignment = 1
+
+[node name="MageDescription" type="Label" parent="MageInfo/VBoxContainer"]
+layout_mode = 2
+text = "Mage description goes here..."
+autowrap_mode = 3
+
+[node name="MageSkills" type="Label" parent="MageInfo/VBoxContainer"]
+layout_mode = 2
+text = "Skills: "
+
+[node name="MageGridContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="MageGridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
