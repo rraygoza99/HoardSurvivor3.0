@@ -31,6 +31,12 @@ states/run/position = Vector2(559, 79)
 transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_crb5h"), "run", "idle", SubResource("AnimationNodeStateMachineTransition_fbkf2"), "idle", "run", SubResource("AnimationNodeStateMachineTransition_1fepk")]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1fepk"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_synchonizer", "_camera", "_playerModel")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.911887, 0)
@@ -59,8 +65,8 @@ replication_config = SubResource("SceneReplicationConfig_1fepk")
 transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 0, -0.827983, 0)
 
 [node name="Skeleton3D" parent="Dave/Armature" index="0"]
-bones/0/position = Vector3(0, 3.26391, 0)
-bones/1/position = Vector3(1.42525, 1.73521, -0.016896)
+bones/0/position = Vector3(0, 3.24831, 0)
+bones/1/position = Vector3(1.42525, 1.71703, -0.016896)
 bones/1/rotation = Quaternion(0.698847, 0.107763, -0.698847, 0.107763)
 bones/2/rotation = Quaternion(-2.47025e-15, 4.44089e-15, 1.33227e-15, 1)
 bones/4/rotation = Quaternion(0.695596, 1.12009e-07, 8.16035e-08, 0.718434)
@@ -74,10 +80,10 @@ bones/13/rotation = Quaternion(0.506254, -0.0723184, -0.0795617, 0.855656)
 bones/14/rotation = Quaternion(0.168543, -0.0544207, -0.009284, 0.984147)
 bones/16/rotation = Quaternion(0.447989, -0.0671035, -0.204828, 0.867669)
 bones/17/rotation = Quaternion(0.704009, 0.0707249, -0.012002, 0.706559)
-bones/18/position = Vector3(1.29355e-08, 2.69136, -0.546291)
+bones/18/position = Vector3(1.17897e-08, 2.68447, -0.547811)
 bones/30/rotation = Quaternion(0.707107, 0, -0.707107, 0)
 bones/31/rotation = Quaternion(-1.25607e-15, -5.33851e-08, 0.707107, 0.707107)
-bones/32/position = Vector3(-1.42525, 1.73584, -0.016896)
+bones/32/position = Vector3(-1.42525, 1.71778, -0.016896)
 bones/32/rotation = Quaternion(0.698847, -0.107763, 0.698847, 0.107763)
 bones/33/rotation = Quaternion(7.45056e-09, -3.55271e-15, 4.10783e-15, 1)
 bones/35/rotation = Quaternion(0.695596, -1.12009e-07, -8.16035e-08, 0.718434)

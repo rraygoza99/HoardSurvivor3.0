@@ -39,7 +39,39 @@ public partial class PlayerController : CharacterBody3D
     public override void _Ready()
     {
         var isMultiplayerAuthority = IsMultiplayerAuthority();
-        Initialize(new Wizgod());
+        
+        // Initialize character based on scene name
+        string nodeName = Name.ToString();
+        string characterName = nodeName.Contains("_") ? nodeName.Split("_")[1] : "Wizgod";
+        
+        // Initialize the correct character based on the scene name
+        switch (characterName.ToLower())
+        {
+            case "dave":
+                Initialize(new Dave());
+                break;
+            case "alice":
+                // Add Alice character class when implemented
+                Initialize(new Wizgod()); // Fallback for now
+                break;
+            case "sam":
+                // Add Sam character class when implemented
+                Initialize(new Wizgod()); // Fallback for now
+                break;
+            case "carl":
+                // Add Carl character class when implemented
+                Initialize(new Wizgod()); // Fallback for now
+                break;
+            case "bern":
+                // Add Bern character class when implemented
+                Initialize(new Wizgod()); // Fallback for now
+                break;
+            case "wizgod":
+            default:
+                Initialize(new Wizgod());
+                break;
+        }
+        
         SetProcess(isMultiplayerAuthority);
         SetPhysicsProcess(isMultiplayerAuthority);
 
