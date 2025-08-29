@@ -5,7 +5,7 @@ using SteamMultiplayer.features.player;
 
 public partial class PlayerController : CharacterBody3D
 {
-    [Export] private MultiplayerSynchronizer _synchonizer;
+    [Export] private MultiplayerSynchronizer _synchronizer;
     [Export] private PlayerCamera _camera;
     [Export] private int _multiplayerAuthority;
     private Character character;
@@ -121,8 +121,15 @@ public partial class PlayerController : CharacterBody3D
 			velocity.X = direction.X * moveSpeed;
 			velocity.Z = direction.Z * moveSpeed;
 
-            Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection*3;
+            // Calculate the look target based on movement direction
+            Vector3 lookTarget = GlobalPosition - direction * 3;
+            
+            // First rotate the root node (CharacterBody3D) for network synchronization
+            LookAt(new Vector3(lookTarget.X, GlobalPosition.Y, lookTarget.Z));
+            
+            // Then rotate the model
             _playerModel.LookAt(lookTarget);
+            
 			_animationTree.Set("parameters/conditions/Run", true);
 			_animationTree.Set("parameters/conditions/Idle", false);
 		}

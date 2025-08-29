@@ -38,10 +38,10 @@ properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
 
-[node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_synchonizer", "_camera", "_playerModel")]
+[node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_synchronizer", "_camera", "_playerModel")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.911887, 0)
 script = ExtResource("1_h3c8f")
-_synchonizer = NodePath("MultiplayerSynchronizer")
+_synchronizer = NodePath("MultiplayerSynchronizer")
 _camera = NodePath("PlayerCamera")
 _playerModel = NodePath("Dave")
 
