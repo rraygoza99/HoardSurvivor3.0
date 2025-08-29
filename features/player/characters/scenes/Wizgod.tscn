@@ -37,11 +37,22 @@ properties/0/replication_mode = 1
 properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
+properties/2/path = NodePath("wizgod:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("wizgod/AnimationPlayer:current_animation")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath("AnimationTree:parameters/conditions/Idle")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath("AnimationTree:parameters/conditions/Run")
+properties/5/spawn = true
+properties/5/replication_mode = 1
 
-[node name="Wizgod" type="CharacterBody3D" node_paths=PackedStringArray("_synchronizer", "_camera", "_playerModel")]
+[node name="Wizgod" type="CharacterBody3D" node_paths=PackedStringArray("_camera", "_playerModel")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.911887, 0)
 script = ExtResource("1_nf7mb")
-_synchronizer = NodePath("MultiplayerSynchronizer")
 _camera = NodePath("PlayerCamera")
 _playerModel = NodePath("wizgod")
 
@@ -59,7 +70,7 @@ parameters/conditions/Run = false
 transform = Transform3D(-0.425, 0, -3.71547e-08, 0, 0.425, 0, 3.71547e-08, 0, -0.425, 0, -0.835598, 0)
 
 [node name="Skeleton3D" parent="wizgod/Armature" index="0"]
-bones/0/position = Vector3(0, 0.059082, 0)
+bones/0/position = Vector3(0, 0.0153023, 0)
 bones/2/rotation = Quaternion(-0.0717056, 0.218485, -0.515083, 0.825719)
 bones/3/rotation = Quaternion(0.231546, 0.0786488, 0.544741, 0.802158)
 bones/5/rotation = Quaternion(0.2371, 0.0327054, 0.0725419, 0.968221)
@@ -70,7 +81,7 @@ bones/11/rotation = Quaternion(0.275047, 0.0499251, 0.313407, 0.907542)
 bones/12/rotation = Quaternion(0.467845, 0.0448147, 0.127088, 0.873476)
 bones/14/rotation = Quaternion(-7.66735e-09, -6.46097e-08, 0.0127238, 0.999919)
 bones/15/rotation = Quaternion(-0.0958158, 3.14991e-08, 0.0201295, 0.995196)
-bones/17/rotation = Quaternion(0.245926, -0.835505, 0.464977, 0.1589)
+bones/17/rotation = Quaternion(0.221229, -0.842682, 0.477222, 0.114911)
 bones/18/rotation = Quaternion(-0.0602773, 0.3418, -0.496151, 0.795848)
 bones/20/rotation = Quaternion(0.514149, -0.277517, -0.15197, 0.797208)
 bones/21/rotation = Quaternion(0.391427, -0.0853492, -0.539359, 0.74067)
@@ -84,10 +95,10 @@ bones/32/position = Vector3(0, 0.100126, 0)
 bones/34/rotation = Quaternion(3.55271e-15, -7.10543e-15, 2.11758e-22, 1)
 bones/35/rotation = Quaternion(3.55271e-15, -3.55271e-15, 2.11758e-22, 1)
 bones/36/rotation = Quaternion(-1.26441e-07, -7.30555e-08, -0.707107, 0.707107)
-bones/37/position = Vector3(0, 2.55417, 0)
+bones/37/position = Vector3(0, 2.50999, 0)
 bones/41/rotation = Quaternion(-0.147088, -0.18035, -0.494355, 0.837528)
 bones/44/rotation = Quaternion(-0.151022, -0.185173, -0.507577, 0.82781)
-bones/45/position = Vector3(1.99754, 0.359014, 0.401134)
+bones/45/position = Vector3(1.99754, 0.344748, 0.401134)
 bones/45/rotation = Quaternion(-0.00327835, -1.14955e-06, -3.53861e-07, 0.999995)
 bones/46/position = Vector3(0, 0.100126, 0)
 bones/48/rotation = Quaternion(3.55271e-15, 7.10543e-15, -2.11758e-22, 1)
