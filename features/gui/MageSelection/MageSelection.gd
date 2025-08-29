@@ -25,15 +25,15 @@ var mage_data_list = [
 		"skills": ["Fireball"]
 	},
 	{
-		"id": "ice_mage",
-		"name": "Ben",
+		"id": "dave",
+		"name": "Dave",
 		"description": "Controls the battlefield with ice and slowing effects.",
-		"image_path": "res://features/gui/MageSelection/Images/Ben_portrait.png",
-		"model_path": "res://assets/models/player/ben/ben.glb",
+		"image_path": "res://features/gui/MageSelection/Images/Dave_portrait.png",
+		"model_path": "res://assets/models/player/dave/dave.glb",
 		"skills": ["Ice Spike", "Frost Nova", "Blizzard"]
 	},
 	{
-		"id": "lightning_mage",
+		"id": "alice",
 		"name": "Alice",
 		"description": "Delivers quick, precise damage with lightning spells.",
 		"image_path": "res://features/gui/MageSelection/Images/Alice_portrait.png",
@@ -41,7 +41,7 @@ var mage_data_list = [
 		"skills": ["Lightning Bolt", "Chain Lightning", "Thunder Storm"]
 	},
 	{
-		"id": "earth_mage",
+		"id": "sam",
 		"name": "Sam",
 		"description": "Durable caster with protective and control abilities.",
 		"image_path": "res://features/gui/MageSelection/Images/Sam_portrait.png",
@@ -49,7 +49,7 @@ var mage_data_list = [
 		"skills": ["Rock Throw", "Earthquake", "Stone Wall"]
 	},
 	{
-		"id": "arcane_mage",
+		"id": "carl",
 		"name": "Carl",
 		"description": "Manipulates pure magical energy for complex effects.",
 		"image_path": "res://features/gui/MageSelection/Images/Carl_portrait.png",
@@ -57,7 +57,7 @@ var mage_data_list = [
 		"skills": ["Magic Missile", "Arcane Explosion", "Time Warp"]
 	},
 	{
-		"id": "nature_mage",
+		"id": "bern",
 		"name": "Bern",
 		"description": "Combines healing and poison abilities with plant control.",
 		"image_path": "res://features/gui/MageSelection/Images/Bern_portrait.png",
@@ -68,8 +68,12 @@ var mage_data_list = [
 
 func _ready():
 	populate_mage_grid()
-	# Select Wizgod by default
-	select_mage_by_id("wizgod")
+	
+	# Get the currently selected character from GameData
+	var selected_character_id = get_node("/root/GameData").get_selected_character()
+	
+	# Select the current character or default to wizgod if not found
+	select_mage_by_id(selected_character_id)
 
 func populate_mage_grid():
 	# Clear any existing children first
@@ -89,24 +93,28 @@ func populate_mage_grid():
 		mage_item.mage_selected.connect(_on_mage_item_selected)
 
 func _on_mage_item_selected(mage_id: String):
-	select_mage_by_id(mage_id)
+	# Convert to lowercase for consistency before selecting
+	select_mage_by_id(mage_id.to_lower())
 
 func select_mage_by_id(mage_id: String):
+	# Convert mage_id to lowercase for consistent handling
+	var lowercase_mage_id = mage_id.to_lower()
+	
 	# Don't do anything if this mage is already selected
-	if current_mage_id == mage_id:
+	if current_mage_id == lowercase_mage_id:
 		return
 		
-	current_mage_id = mage_id
+	current_mage_id = lowercase_mage_id
 	
 	# Find the mage data
 	var mage_data = null
 	for data in mage_data_list:
-		if data.id == mage_id:
+		if data.id == lowercase_mage_id:
 			mage_data = data
 			break
 	
 	if mage_data == null:
-		print("Mage with ID ", mage_id, " not found")
+		print("Mage with ID ", lowercase_mage_id, " not found")
 		return
 	
 	# Update the UI with mage info
@@ -115,8 +123,12 @@ func select_mage_by_id(mage_id: String):
 	# Load and display the 3D model
 	load_mage_model(mage_data)
 	
-	# Forward the signal
-	mage_selected.emit(mage_id)
+	# Store the selection in the global GameData
+	var character_name = mage_data.name
+	get_node("/root/GameData").set_selected_character(character_name)
+	
+	# Forward the signal - emit lowercase ID
+	mage_selected.emit(lowercase_mage_id)
 
 func update_mage_info(mage_data):
 	# Update UI elements

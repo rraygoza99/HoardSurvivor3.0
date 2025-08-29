@@ -46,19 +46,47 @@ func start_game():
 		teleport_player.rpc_id(player, startPos)
 		spawnLocation += 1
 	pass
+	
+func end_game():
+	# Clean up the world
+	for child in world.get_children():
+		world.remove_child(child)
+		child.queue_free()
+	
+	# Signal that the game has ended
+	game_ended.emit()
+	
+	# Update the lobby with the latest character selections
+	networking.on_return_to_lobby()
+	pass
 
 @rpc("call_local")
 func load_player(peerId: int, startPos: Vector3):
 	print("Loading player..")
-	var packedPlayer: PackedScene = load("res://features/player/characters/scenes/Wizgod.tscn")
-	#var packedPlayer: PackedScene = load("res://features/player/player.tscn")
+	
+	# Get the player's selected character
+	var character_name = "Wizgod"  # Default
+	if networking.player_characters.has(peerId):
+		character_name = networking.player_characters[peerId]
+	
+	# Load the appropriate character scene based on selection
+	var character_path = "res://features/player/characters/scenes/%s.tscn" % character_name
+	var packedPlayer: PackedScene
+	
+	# Check if the character scene exists
+	if ResourceLoader.exists(character_path):
+		packedPlayer = load(character_path)
+	else:
+		# Fall back to default character if selected one doesn't exist
+		packedPlayer = load("res://features/player/characters/scenes/Wizgod.tscn")
+	
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(peerId)
 	playerScene.MultiplayerAuthority = peerId
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	
-	spawn_player.rpc(networking.playerSteamName, startPos)
+	spawn_player.rpc(networking.playerSteamName, startPos, character_name)
 	
 	game_started.emit()
 	print("Player loaded..")
@@ -74,10 +102,21 @@ func load_world():
 	pass
 
 @rpc("any_peer")
-func spawn_player(steamName: String, startPos: Vector3):
-	print("Spawning remote Player: ", steamName)
+func spawn_player(steamName: String, startPos: Vector3, character_name: String = "Wizgod"):
+	print("Spawning remote Player: ", steamName, " as character: ", character_name)
 	var senderId := multiplayer.get_remote_sender_id()
-	var packedPlayer: PackedScene = load("res://features/player/player.tscn")
+	
+	# Load the appropriate character scene based on selection
+	var character_path = "res://features/player/characters/scenes/%s.tscn" % character_name
+	var packedPlayer: PackedScene
+	
+	# Check if the character scene exists
+	if ResourceLoader.exists(character_path):
+		packedPlayer = load(character_path)
+	else:
+		# Fall back to default character if selected one doesn't exist
+		packedPlayer = load("res://features/player/characters/scenes/Wizgod.tscn")
+	
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(senderId)
 	playerScene.MultiplayerAuthority = senderId

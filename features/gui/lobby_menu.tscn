@@ -11,10 +11,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -164.0
+offset_left = -504.0
 offset_top = -179.0
-offset_right = 236.0
-offset_bottom = 71.0
+offset_right = 506.0
+offset_bottom = 293.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_djr71")
@@ -28,7 +28,10 @@ waitingRoom = NodePath("WaitingRoom")
 lobbyPlayersList = NodePath("WaitingRoom/VBoxContainer/LobbyPlayersList")
 
 [node name="Lobbies" type="MarginContainer" parent="."]
+visible = false
+custom_minimum_size = Vector2(450, 0)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
@@ -84,7 +87,6 @@ refreshButton = NodePath("../Refresh")
 layout_mode = 2
 
 [node name="WaitingRoom" type="MarginContainer" parent="."]
-visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
@@ -92,11 +94,25 @@ theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
 [node name="VBoxContainer" type="VBoxContainer" parent="WaitingRoom"]
+custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 
-[node name="LobbyPlayersList" type="ItemList" parent="WaitingRoom/VBoxContainer"]
+[node name="Label" type="Label" parent="WaitingRoom/VBoxContainer"]
+layout_mode = 2
+text = "Players in Lobby"
+horizontal_alignment = 1
+
+[node name="ChangeCharacterButton" type="Button" parent="WaitingRoom/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Change Character"
+
+[node name="LobbyPlayersList" type="GridContainer" parent="WaitingRoom/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 3
 script = ExtResource("3_fnd4n")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="WaitingRoom/VBoxContainer"]
@@ -114,13 +130,3 @@ text = "Play
 [node name="Leave" type="Button" parent="WaitingRoom/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Leave"
-
-[node name="MenuOptions" type="MarginContainer" parent="."]
-visible = false
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="MenuOptions"]
-layout_mode = 2
-
-[node name="Button" type="Button" parent="MenuOptions/HBoxContainer"]
-layout_mode = 2

@@ -89,7 +89,7 @@ public partial class PlayerController : CharacterBody3D
 			velocity.X = direction.X * moveSpeed;
 			velocity.Z = direction.Z * moveSpeed;
 
-            Vector3 lookTarget = GlobalPosition + _playerInputs.CalculatedDirection;
+            Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection*3;
             _playerModel.LookAt(lookTarget);
 			_animationTree.Set("parameters/conditions/Run", true);
 			_animationTree.Set("parameters/conditions/Idle", false);

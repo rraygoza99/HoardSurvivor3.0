@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dviwh4mpef80m"
-path="res://.godot/imported/wizgod_portrait.png-d1041148b8a766000168a8f7c0b4fe01.ctex"
+uid="uid://dryv2h0ie34ej"
+path="res://.godot/imported/dave_portrait.png-d285173a6bbdbbe9b1d3570a15eea856.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://features/gui/MageSelection/Images/wizgod_portrait.png"
-dest_files=["res://.godot/imported/wizgod_portrait.png-d1041148b8a766000168a8f7c0b4fe01.ctex"]
+source_file="res://features/gui/MageSelection/Images/dave_portrait.png"
+dest_files=["res://.godot/imported/dave_portrait.png-d285173a6bbdbbe9b1d3570a15eea856.ctex"]
 
 [params]
 

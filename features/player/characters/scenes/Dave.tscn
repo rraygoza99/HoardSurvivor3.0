@@ -1,0 +1,97 @@
+[gd_scene load_steps=12 format=3 uid="uid://cglc1m1cy6pqx"]
+
+[ext_resource type="Script" uid="uid://bwlo2qoiymwrb" path="res://features/player/PlayerController.cs" id="1_h3c8f"]
+[ext_resource type="PackedScene" uid="uid://wrprlsmewbej" path="res://assets/models/player/dave/Dave.glb" id="3_h3c8f"]
+[ext_resource type="PackedScene" uid="uid://jgtt4rluxfpa" path="res://features/player/player_camera.tscn" id="3_wiyj1"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1fepk"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fbkf2"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1fepk"]
+animation = &"run"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_crb5h"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_fbkf2"]
+advance_mode = 2
+advance_condition = &"Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1fepk"]
+advance_mode = 2
+advance_condition = &"Run"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_nf7mb"]
+states/idle/node = SubResource("AnimationNodeAnimation_fbkf2")
+states/idle/position = Vector2(393, 144)
+states/run/node = SubResource("AnimationNodeAnimation_1fepk")
+states/run/position = Vector2(559, 79)
+transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_crb5h"), "run", "idle", SubResource("AnimationNodeStateMachineTransition_fbkf2"), "idle", "run", SubResource("AnimationNodeStateMachineTransition_1fepk")]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1fepk"]
+
+[node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_synchonizer", "_camera", "_playerModel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.911887, 0)
+script = ExtResource("1_h3c8f")
+_synchonizer = NodePath("MultiplayerSynchronizer")
+_camera = NodePath("PlayerCamera")
+_playerModel = NodePath("Dave")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_1fepk")
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+root_node = NodePath("../Dave")
+tree_root = SubResource("AnimationNodeStateMachine_nf7mb")
+anim_player = NodePath("../Dave/AnimationPlayer")
+parameters/conditions/Idle = false
+parameters/conditions/Run = false
+
+[node name="PlayerCamera" parent="." node_paths=PackedStringArray("_playerController") instance=ExtResource("3_wiyj1")]
+_playerController = NodePath("..")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_1fepk")
+
+[node name="Dave" parent="." instance=ExtResource("3_h3c8f")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 0, -0.827983, 0)
+
+[node name="Skeleton3D" parent="Dave/Armature" index="0"]
+bones/0/position = Vector3(0, 3.26391, 0)
+bones/1/position = Vector3(1.42525, 1.73521, -0.016896)
+bones/1/rotation = Quaternion(0.698847, 0.107763, -0.698847, 0.107763)
+bones/2/rotation = Quaternion(-2.47025e-15, 4.44089e-15, 1.33227e-15, 1)
+bones/4/rotation = Quaternion(0.695596, 1.12009e-07, 8.16035e-08, 0.718434)
+bones/5/rotation = Quaternion(0.647899, 9.96412e-08, 8.04021e-08, 0.761726)
+bones/6/rotation = Quaternion(0.177111, 3.28245e-08, 3.02872e-08, 0.984191)
+bones/8/rotation = Quaternion(0.658146, 0.230076, 0.282901, 0.658692)
+bones/9/rotation = Quaternion(0.657435, 0.0533236, 0.20596, 0.722853)
+bones/10/rotation = Quaternion(0.166305, 0.0609202, 0.0289105, 0.983766)
+bones/12/rotation = Quaternion(0.658402, -0.228888, -0.33284, 0.635087)
+bones/13/rotation = Quaternion(0.506254, -0.0723184, -0.0795617, 0.855656)
+bones/14/rotation = Quaternion(0.168543, -0.0544207, -0.009284, 0.984147)
+bones/16/rotation = Quaternion(0.447989, -0.0671035, -0.204828, 0.867669)
+bones/17/rotation = Quaternion(0.704009, 0.0707249, -0.012002, 0.706559)
+bones/18/position = Vector3(1.29355e-08, 2.69136, -0.546291)
+bones/30/rotation = Quaternion(0.707107, 0, -0.707107, 0)
+bones/31/rotation = Quaternion(-1.25607e-15, -5.33851e-08, 0.707107, 0.707107)
+bones/32/position = Vector3(-1.42525, 1.73584, -0.016896)
+bones/32/rotation = Quaternion(0.698847, -0.107763, 0.698847, 0.107763)
+bones/33/rotation = Quaternion(7.45056e-09, -3.55271e-15, 4.10783e-15, 1)
+bones/35/rotation = Quaternion(0.695596, -1.12009e-07, -8.16035e-08, 0.718434)
+bones/36/rotation = Quaternion(0.647899, -9.96411e-08, -8.04021e-08, 0.761726)
+bones/37/rotation = Quaternion(0.177111, -3.28245e-08, -3.02872e-08, 0.984191)
+bones/39/rotation = Quaternion(0.658146, -0.230076, -0.282901, 0.658692)
+bones/40/rotation = Quaternion(0.657435, -0.0533236, -0.20596, 0.722853)
+bones/41/rotation = Quaternion(0.166305, -0.0609202, -0.0289105, 0.983766)
+bones/43/rotation = Quaternion(0.658402, 0.228888, 0.33284, 0.635087)
+bones/44/rotation = Quaternion(0.506254, 0.0723184, 0.0795617, 0.855656)
+bones/45/rotation = Quaternion(0.168543, 0.0544207, 0.00928401, 0.984147)
+bones/47/rotation = Quaternion(0.447989, 0.0671035, 0.204828, 0.867669)
+bones/48/rotation = Quaternion(0.704009, -0.0707249, 0.012002, 0.706559)
+bones/49/rotation = Quaternion(0.707107, 0, 0.707107, 0)
+bones/50/rotation = Quaternion(-1.25607e-15, 5.33851e-08, -0.707107, 0.707107)
+
+[editable path="Dave"]

@@ -1,14 +1,28 @@
-[gd_scene load_steps=2 format=3 uid="uid://cof8u14h8sbvb"]
+[gd_scene load_steps=3 format=3 uid="uid://cof8u14h8sbvb"]
 
-[ext_resource type="Script" path="res://features/gui/MageSelection/MageItem.gd" id="1_rcrqk"]
+[ext_resource type="Script" uid="uid://c3c4ikh2bgj7" path="res://features/gui/MageSelection/MageItem.gd" id="1_rcrqk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j5q7d"]
+bg_color = Color(0.156863, 0.156863, 0.156863, 0.501961)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="MageItem" type="VBoxContainer"]
 custom_minimum_size = Vector2(120, 150)
 script = ExtResource("1_rcrqk")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_j5q7d")
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 expand_mode = 1
 stretch_mode = 5
 
@@ -16,9 +30,3 @@ stretch_mode = 5
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="SelectButton" type="Button" parent="."]
-layout_mode = 2
-text = "Select"
-
-[connection signal="pressed" from="SelectButton" to="." method="_on_select_button_pressed"]

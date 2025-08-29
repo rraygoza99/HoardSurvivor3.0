@@ -18,7 +18,7 @@ script = ExtResource("2_21nkt")
 main = NodePath("..")
 gui = NodePath("../Gui")
 
-[node name="Gui" type="Control" parent="." node_paths=PackedStringArray("main", "networking", "lobbyMenu")]
+[node name="Gui" type="Control" parent="." node_paths=PackedStringArray("main", "networking", "lobbyMenu", "lobbyOptions")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,6 +29,7 @@ script = ExtResource("3_klrq2")
 main = NodePath("..")
 networking = NodePath("../SteamNetworking")
 lobbyMenu = NodePath("LobbyMenu")
+lobbyOptions = NodePath("LobbyOptions")
 
 [node name="LobbyMenu" parent="Gui" instance=ExtResource("2_v64vj")]
 layout_mode = 1
