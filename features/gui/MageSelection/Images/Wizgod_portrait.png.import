@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dviwh4mpef80m"
-path="res://.godot/imported/wizgod_portrait.png-d1041148b8a766000168a8f7c0b4fe01.ctex"
+path="res://.godot/imported/Wizgod_portrait.png-ba7f4538d10e77f5572b015eb7083e10.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://features/gui/MageSelection/Images/wizgod_portrait.png"
-dest_files=["res://.godot/imported/wizgod_portrait.png-d1041148b8a766000168a8f7c0b4fe01.ctex"]
+source_file="res://features/gui/MageSelection/Images/Wizgod_portrait.png"
+dest_files=["res://.godot/imported/Wizgod_portrait.png-ba7f4538d10e77f5572b015eb7083e10.ctex"]
 
 [params]
 
