@@ -5,6 +5,6 @@ class_name TestWorld
 
 
 @onready var enemies: Node = $Enemies
-
+@onready var fireballs: Node = $Fireballs
 
 

@@ -182,25 +182,34 @@ public partial class PlayerController : CharacterBody3D
 
     private void CastFireball(ISpell spell)
     {
-        if (FindNearestEnemy(50f) == null) // 50f is the casting range
-        {
-            return; // Don't cast if no enemy is in range
-        }
+        var fireballSpell = _spells.FirstOrDefault(s => s.Name == "Fireball") as FireballSpell;
+        if (fireballSpell == null || !fireballSpell.CanCast()) return;
 
-        var fireball = _fireballScene.Instantiate<Fireball>();
-        
-        // Pass spell properties to the fireball projectile
-        if (spell is FireballSpell fireballSpell)
-        {
-            fireball.Initialize(fireballSpell.Damage, fireballSpell.ProjectileSpeed);
-        }
-        
-        var spawnPosition = GlobalPosition + -GlobalTransform.Basis.Z * 2;
-        fireball.Position = spawnPosition;
-        GetParent().AddChild(fireball);
-        spell.Cast();
+        var nearestEnemy = FindNearestEnemy(50f);
+        if (nearestEnemy == null) return;
+
+        var spawnPosition = GlobalPosition + (-GlobalTransform.Basis.Z * 2f);
+        var targetPosition = nearestEnemy.GlobalPosition;
+        targetPosition.Y = spawnPosition.Y; // Keep same Y level
+        var direction = (targetPosition - spawnPosition).Normalized();
+    
+        fireballSpell.Cast();
+    
+        // Use RPC instead of local instantiation
+        Rpc(MethodName.SpawnFireballRpc, spawnPosition, direction, fireballSpell.Damage, fireballSpell.ProjectileSpeed);
     }
-
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    private void SpawnFireballRpc(Vector3 spawnPosition, Vector3 direction, float damage, float speed)
+    {
+        var fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+        var fireball = fireballScene.Instantiate<Fireball>();
+    
+        // Add to a global node that all players can see
+        GetTree().CurrentScene.AddChild(fireball);
+    
+        fireball.GlobalPosition = spawnPosition;
+        fireball.Initialize(damage, speed, direction);
+    }
     private Node3D FindNearestEnemy(float range)
     {
         var enemies = GetTree().GetNodesInGroup("enemies").Cast<Node3D>().ToList();

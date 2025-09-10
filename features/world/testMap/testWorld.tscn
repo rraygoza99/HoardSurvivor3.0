@@ -52,3 +52,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, 0)
 script = ExtResource("4_d6eqb")
 spawn_location = [NodePath("../SpawnLocation"), NodePath("../SpawnLocation2")]
 enemy_spawn_node = NodePath("../Enemies")
+
+[node name="Fireballs" type="Node3D" parent="."]

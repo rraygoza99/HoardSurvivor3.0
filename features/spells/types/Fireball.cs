@@ -55,16 +55,18 @@ namespace HoardSurvivor3._0.Features.Spells
         private float _lifetime = 5f; // To prevent it from flying forever
         private float _speed = 5f; // Default speed
 
-        public void Initialize(float damage, float speed)
+        public void Initialize(float damage, float speed, Vector3 direction)
         {
             _damage = damage;
             _speed = speed;
+            _direction = direction;
+
         }
 
         public override void _Ready()
         {
             BodyEntered += OnBodyEntered;
-            SetDirectionToNearestEnemy();
+            //SetDirectionToNearestEnemy();
         }
 
         public override void _Process(double delta)
