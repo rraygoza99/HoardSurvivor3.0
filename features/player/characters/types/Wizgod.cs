@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Godot;
 using HoardSurvivor3._0.features.characters.@base;
+using HoardSurvivor3._0.Features.Spells;
+using HoardSurvivor3._0.Features.Spells.Base;
 
 namespace HoardSurvivor3._0.Features.Player.Characters.Types
 {
@@ -23,8 +25,7 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Types
         }
         protected override void InitializeStartingSpells()
         {
-            // Add starting spells for Wizgod
-            
+            Spells.Add(new FireballSpell());
         }
     }
 }

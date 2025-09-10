@@ -10,6 +10,7 @@ namespace HoardSurvivor3._0.Features.Spells.Base
         float CritDamage { get; }
         float Size { get; }
         float CurrentCooldown { get; }
+        float ProjectileSpeed { get; }
         void Cast();
         bool CanCast();
         void UpdateCooldown(float deltaTime);

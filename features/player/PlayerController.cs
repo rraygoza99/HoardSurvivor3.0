@@ -1,6 +1,10 @@
 using Godot;
 using HoardSurvivor3._0.Features.Player.Characters.Base;
 using HoardSurvivor3._0.Features.Player.Characters.Types;
+using HoardSurvivor3._0.Features.Spells.Base;
+using HoardSurvivor3._0.Features.Spells;
+using System.Collections.Generic;
+using System.Linq;
 using SteamMultiplayer.features.player;
 
 public partial class PlayerController : CharacterBody3D
@@ -15,6 +19,10 @@ public partial class PlayerController : CharacterBody3D
     private PlayerInputs _playerInputs;
     public Vector3 StartPosition { get; set; }
     [Export] private Node3D _playerModel;
+
+    // Spell casting related fields
+    private PackedScene _fireballScene;
+    private List<ISpell> _spells;
 
     private Godot.Vector3 direction = Godot.Vector3.Zero;
 
@@ -82,12 +90,25 @@ public partial class PlayerController : CharacterBody3D
         _playerInputs = new PlayerInputs(this);
         _animationTree = GetNode<AnimationTree>("AnimationTree");
         _animationTree.Active = true;
+        
+        // Initialize spell casting
+        _spells = character.Spells;
+        _fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+        
         var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
     }
     public override void _Process(double delta)
     {
         _playerInputs.Handler();
+        
+        // Update spell cooldowns and cast spells
+        foreach (var spell in _spells)
+        {
+            spell.UpdateCooldown((float)delta);
+        }
+
+        CastSpells();
     }
     public override void _PhysicsProcess(double delta)
     {
@@ -144,5 +165,59 @@ public partial class PlayerController : CharacterBody3D
 		GD.Print("New pos: ", newPosition);
 		GlobalPosition = newPosition;
 	}
+
+    private void CastSpells()
+    {
+        foreach (var spell in _spells)
+        {
+            if (spell.CanCast())
+            {
+                if (spell.Name == "Fireball")
+                {
+                    CastFireball(spell);
+                }
+            }
+        }
+    }
+
+    private void CastFireball(ISpell spell)
+    {
+        if (FindNearestEnemy(50f) == null) // 50f is the casting range
+        {
+            return; // Don't cast if no enemy is in range
+        }
+
+        var fireball = _fireballScene.Instantiate<Fireball>();
+        
+        // Pass spell properties to the fireball projectile
+        if (spell is FireballSpell fireballSpell)
+        {
+            fireball.Initialize(fireballSpell.Damage, fireballSpell.ProjectileSpeed);
+        }
+        
+        var spawnPosition = GlobalPosition + -GlobalTransform.Basis.Z * 2;
+        fireball.Position = spawnPosition;
+        GetParent().AddChild(fireball);
+        spell.Cast();
+    }
+
+    private Node3D FindNearestEnemy(float range)
+    {
+        var enemies = GetTree().GetNodesInGroup("enemies").Cast<Node3D>().ToList();
+        Node3D nearestEnemy = null;
+        var minDistance = range;
+
+        foreach (var enemy in enemies)
+        {
+            var distance = GlobalPosition.DistanceTo(enemy.GlobalPosition);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                nearestEnemy = enemy;
+            }
+        }
+
+        return nearestEnemy;
+    }
 
 }

@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://dft4u64ywuhkd"]
+
+[ext_resource type="Script" uid="uid://ds8jmv0a55ves" path="res://features/spells/types/Fireball.cs" id="1_v4x0k"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_c35h4"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_p1d57"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_p1d57"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:scale")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="Fireball" type="Area3D"]
+script = ExtResource("1_v4x0k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.515, 0, 0, 0, 0.515, 0, 0, 0, 0.515, 0, 0, 0)
+shape = SubResource("SphereShape3D_c35h4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+mesh = SubResource("SphereMesh_p1d57")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_p1d57")
