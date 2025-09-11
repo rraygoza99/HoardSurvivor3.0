@@ -54,13 +54,27 @@ namespace HoardSurvivor3._0.Features.Spells
         private float _damage = 25f;
         private float _lifetime = 5f; // To prevent it from flying forever
         private float _speed = 5f; // Default speed
+        private bool _isActive = false;
 
-        public void Initialize(float damage, float speed, Vector3 direction)
+        public void Initialize(float damage, float speed, Vector3 direction, Vector3 startPosition)
         {
             _damage = damage;
             _speed = speed;
             _direction = direction;
+            GlobalPosition = startPosition;
+            _isActive = true;
+            SetProcess(true);
 
+        }
+
+        public void Reset()
+        {
+            _isActive = false;
+            _lifetime = 5f;
+            _direction = Vector3.Zero;
+            Hide();
+            SetProcess(false);
+            
         }
 
         public override void _Ready()
@@ -71,12 +85,19 @@ namespace HoardSurvivor3._0.Features.Spells
 
         public override void _Process(double delta)
         {
+            if (!_isActive) return;
             Position += _direction * _speed * (float)delta;
             _lifetime -= (float)delta;
             if (_lifetime <= 0)
             {
-                QueueFree();
+                ReturnToPool();
             }
+        }
+
+        private void ReturnToPool()
+        {
+            _isActive = false;
+            SpellProjectilePool.Instance?.ReturnFireball(this);
         }
 
         private void SetDirectionToNearestEnemy()
@@ -113,12 +134,12 @@ namespace HoardSurvivor3._0.Features.Spells
 
         private void OnBodyEntered(Node body)
         {
+            if (!_isActive) return;
+    
             if (body.IsInGroup("enemies"))
             {
-                // Assuming the enemy has a method to take damage
-                // body.Call("TakeDamage", _damage);
                 GD.Print($"Fireball hit an enemy: {body.Name}");
-                QueueFree(); // Destroy the fireball on impact
+                ReturnToPool(); // Return to pool instead of QueueFree()
             }
         }
     }

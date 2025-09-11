@@ -6,6 +6,7 @@ using HoardSurvivor3._0.Features.Spells;
 using System.Collections.Generic;
 using System.Linq;
 using SteamMultiplayer.features.player;
+using HoardSurvivor3._0.Features.Spells.Data;
 
 public partial class PlayerController : CharacterBody3D
 {
@@ -23,6 +24,9 @@ public partial class PlayerController : CharacterBody3D
     // Spell casting related fields
     private PackedScene _fireballScene;
     private List<ISpell> _spells;
+    private Queue<SpellCastData> _pendingSpells = new();
+    private float _rpcBatchTimer = 0f;
+    private const float RPC_BATCH_INTERVAL = 0.1f;
 
     private Godot.Vector3 direction = Godot.Vector3.Zero;
 
@@ -102,13 +106,20 @@ public partial class PlayerController : CharacterBody3D
     {
         _playerInputs.Handler();
         
-        // Update spell cooldowns and cast spells
         foreach (var spell in _spells)
         {
             spell.UpdateCooldown((float)delta);
         }
 
         CastSpells();
+    
+        // ADD THIS MISSING BATCH TIMER LOGIC:
+        _rpcBatchTimer += (float)delta;
+        if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
+        {
+            SendBatchedSpells();
+            _rpcBatchTimer = 0f;
+        }
     }
     public override void _PhysicsProcess(double delta)
     {
@@ -194,21 +205,36 @@ public partial class PlayerController : CharacterBody3D
         var direction = (targetPosition - spawnPosition).Normalized();
     
         fireballSpell.Cast();
-    
-        // Use RPC instead of local instantiation
-        Rpc(MethodName.SpawnFireballRpc, spawnPosition, direction, fireballSpell.Damage, fireballSpell.ProjectileSpeed);
+        _pendingSpells.Enqueue(new SpellCastData("Fireball", spawnPosition, direction, fireballSpell.Damage, fireballSpell.ProjectileSpeed));
+
+    }
+    private void SendBatchedSpells()
+    {
+        if (_pendingSpells.Count == 0) return;
+
+        var spellArray = new SpellCastData[_pendingSpells.Count];
+        for (int i = 0; i < spellArray.Length; i++)
+        {
+            spellArray[i] = _pendingSpells.Dequeue();
+        }
+
+        // Send each spell individually for now to avoid array conversion issues
+        foreach (var spell in spellArray)
+        {
+            Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed);
+        }
     }
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void SpawnFireballRpc(Vector3 spawnPosition, Vector3 direction, float damage, float speed)
+    private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed)
     {
-        var fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
-        var fireball = fireballScene.Instantiate<Fireball>();
-    
-        // Add to a global node that all players can see
-        GetTree().CurrentScene.AddChild(fireball);
-    
-        fireball.GlobalPosition = spawnPosition;
-        fireball.Initialize(damage, speed, direction);
+        if (spellType == "Fireball")
+        {
+            var fireball = _fireballScene.Instantiate<Fireball>();
+            GetTree().CurrentScene.AddChild(fireball);
+            fireball.GlobalPosition = spawnPosition;
+            fireball.Initialize(damage, speed, direction, spawnPosition);
+        }
+        // Add other spell types here as you implement them
     }
     private Node3D FindNearestEnemy(float range)
     {

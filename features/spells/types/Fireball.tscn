@@ -1,10 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://dft4u64ywuhkd"]
 
 [ext_resource type="Script" uid="uid://ds8jmv0a55ves" path="res://features/spells/types/Fireball.cs" id="1_v4x0k"]
+[ext_resource type="ArrayMesh" uid="uid://dwfvjf8rpxxdc" path="res://assets/models/Spells/Fireball/fireball_mesh.obj" id="2_twi8h"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_c35h4"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_p1d57"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_p1d57"]
 properties/0/path = NodePath(".:position")
@@ -26,7 +25,7 @@ shape = SubResource("SphereShape3D_c35h4")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
-mesh = SubResource("SphereMesh_p1d57")
+mesh = ExtResource("2_twi8h")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_p1d57")
