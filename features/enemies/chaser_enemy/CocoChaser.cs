@@ -18,9 +18,11 @@ public partial class CocoChaser : CharacterBody3D
 	private NavigationAgent3D _navAgent;
 	private AnimationTree _animationTree;
 	private float _lastAttackTime = 0.0f;
+	private float _playerUpdateTimer = 0.0f;
+	private const float PLAYER_UPDATE_INTERVAL = 2.0f; // Update target player every 2 seconds
 	
 	public override void _Ready(){
-		_player = GetTree().GetFirstNodeInGroup("player") as Node3D;
+		_player = FindNearestPlayer();
 		_navAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
 		_animationTree = GetNode<AnimationTree>("AnimationTree");
 		Velocity = Vector3.Zero;
@@ -42,19 +44,41 @@ public partial class CocoChaser : CharacterBody3D
 		}
 	}
 	
-	public override void _PhysicsProcess(double delta){
-		if(_player == null) {
-			_player = GetTree().GetFirstNodeInGroup("player") as Node3D;
-			if (_player == null) {
-				return;
+	private Node3D FindNearestPlayer()
+	{
+		var players = GetTree().GetNodesInGroup("player");
+		Node3D nearestPlayer = null;
+		float minDistance = float.MaxValue;
+		
+		foreach (Node3D player in players)
+		{
+			if (player == null) continue;
+			
+			float distance = GlobalPosition.DistanceTo(player.GlobalPosition);
+			if (distance < minDistance)
+			{
+				minDistance = distance;
+				nearestPlayer = player;
 			}
 		}
 		
-		if (_navAgent == null) {
-			return;
+		return nearestPlayer;
+	}
+	
+	public override void _PhysicsProcess(double delta){
+		_lastAttackTime += (float)delta;
+		_playerUpdateTimer += (float)delta;
+		
+		// Update target player periodically to find nearest player
+		if (_playerUpdateTimer >= PLAYER_UPDATE_INTERVAL || _player == null)
+		{
+			_player = FindNearestPlayer();
+			_playerUpdateTimer = 0.0f;
 		}
 		
-		_lastAttackTime += (float)delta;
+		if (_player == null || _navAgent == null) {
+			return;
+		}
 		
 		// Apply gravity
 		Vector3 velocity = Velocity;
@@ -190,6 +214,7 @@ public partial class CocoChaser : CharacterBody3D
 		Damage = 10.0f;
 		AttackCooldown = 1.0f;
 		_lastAttackTime = 0.0f;
+		_playerUpdateTimer = 0.0f;
 		
 		// Reset physics
 		Velocity = Vector3.Zero;
@@ -200,8 +225,8 @@ public partial class CocoChaser : CharacterBody3D
 			_navAgent.TargetPosition = Vector3.Zero;
 		}
 		
-		// Find player again
-		_player = GetTree().GetFirstNodeInGroup("player") as Node3D;
+		// Find nearest player again
+		_player = FindNearestPlayer();
 		
 		// Ensure it's properly added to enemies group
 		if (!IsInGroup("enemies"))
