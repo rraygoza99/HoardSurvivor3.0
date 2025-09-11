@@ -221,18 +221,26 @@ public partial class PlayerController : CharacterBody3D
         // Send each spell individually for now to avoid array conversion issues
         foreach (var spell in spellArray)
         {
+            GD.Print($"Sending RPC for spell: {spell.SpellType} at position: {spell.SpawnPosition}");
             Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed);
         }
     }
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
     private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed)
     {
+        GD.Print($"SpawnSingleSpellRpc called: {spellType} from peer {Multiplayer.GetRemoteSenderId()}");
         if (spellType == "Fireball")
         {
-            var fireball = _fireballScene.Instantiate<Fireball>();
-            GetTree().CurrentScene.AddChild(fireball);
+            var fireball = SpellProjectilePool.Instance?.GetFireball();
+            if (fireball == null)
+            {
+                fireball = _fireballScene.Instantiate<Fireball>();
+                GetTree().CurrentScene.AddChild(fireball);
+            }
             fireball.GlobalPosition = spawnPosition;
             fireball.Initialize(damage, speed, direction, spawnPosition);
+            fireball.Show();
+            
         }
         // Add other spell types here as you implement them
     }
