@@ -52,6 +52,9 @@ public partial class PlayerController : CharacterBody3D
     {
         var isMultiplayerAuthority = IsMultiplayerAuthority();
         
+        // Initialize velocity to zero to prevent crazy initial values
+        Velocity = Vector3.Zero;
+        
         // Initialize character based on scene name
         string nodeName = Name.ToString();
         string characterName = nodeName.Contains("_") ? nodeName.Split("_")[1] : "Wizgod";
@@ -123,22 +126,19 @@ public partial class PlayerController : CharacterBody3D
     }
     public override void _PhysicsProcess(double delta)
     {
-        Godot.Vector3 velocity = Velocity;
-        if (!IsOnFloor())
-        {
-            velocity += GetGravity() * (float)delta;
-        }
         _playerInputs.Handler();
         UpdateMovement(delta);
     }
 
     private void UpdateMovement(double delta)
     {
-        Vector3 velocity = Velocity;    
-        if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
+        Vector3 velocity = Velocity;
+        
+        // Clamp velocity to prevent insane values
+        if (velocity.Length() > 100.0f)
+        {
+            velocity = Vector3.Zero;
+        }
         
         if (!IsOnFloor())
 		{
@@ -146,7 +146,6 @@ public partial class PlayerController : CharacterBody3D
 		}
 		
 		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
 		Vector3 direction = _playerInputs.CalculatedDirection;
 		if (_playerInputs.IsMoving)
 		{
@@ -160,21 +159,60 @@ public partial class PlayerController : CharacterBody3D
 		}
 		else
 		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, moveSpeed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, moveSpeed);
+			velocity.X = Mathf.MoveToward(velocity.X, 0, moveSpeed);
+			velocity.Z = Mathf.MoveToward(velocity.Z, 0, moveSpeed);
 			_animationTree.Set("parameters/conditions/Run", false);
             _animationTree.Set("parameters/conditions/Idle", true);
 		}
 
 		Velocity = velocity;
 		MoveAndSlide();
-        
     }
     private void OnPlayerTeleport(Vector3 newPosition)
 	{
 		GD.Print("Teleporting.. - ", Name);
 		GD.Print("New pos: ", newPosition);
-		GlobalPosition = newPosition;
+		
+		// Reset velocity BEFORE moving to prevent physics conflicts
+		Velocity = Vector3.Zero;
+		
+		// Disable physics temporarily to prevent conflicts
+		SetPhysicsProcess(false);
+		
+		// Ensure player spawns above ground level
+		var space_state = GetWorld3D().DirectSpaceState;
+		var query = PhysicsRayQueryParameters3D.Create(
+			newPosition + Vector3.Up * 10,  // Start further above
+			newPosition + Vector3.Down * 10  // Ray down to find ground
+		);
+		query.CollisionMask = 1;  // Ground layer
+		
+		var result = space_state.IntersectRay(query);
+		if (result.ContainsKey("position"))
+		{
+			var groundPosition = result["position"].AsVector3();
+			// Spawn 2 units above ground to be safe
+			GlobalPosition = groundPosition + Vector3.Up * 2.0f;
+			GD.Print("Adjusted spawn position to: ", GlobalPosition);
+		}
+		else
+		{
+			// Fallback: use the original position but add more height
+			GlobalPosition = newPosition + Vector3.Up * 3.0f;
+			GD.Print("No ground found, using elevated position: ", GlobalPosition);
+		}
+		
+		// Force reset velocity again after position change
+		Velocity = Vector3.Zero;
+		
+		// Re-enable physics and force a reset
+		CallDeferred(nameof(ResetPhysicsAfterTeleport));
+	}
+	
+	private void ResetPhysicsAfterTeleport()
+	{
+		Velocity = Vector3.Zero;
+		SetPhysicsProcess(IsMultiplayerAuthority());
 	}
 
     private void CastSpells()
@@ -199,7 +237,7 @@ public partial class PlayerController : CharacterBody3D
         var nearestEnemy = FindNearestEnemy(50f);
         if (nearestEnemy == null) return;
 
-        var spawnPosition = GlobalPosition + (-GlobalTransform.Basis.Z * 2f);
+        var spawnPosition = GlobalPosition;
         var targetPosition = nearestEnemy.GlobalPosition;
         targetPosition.Y = spawnPosition.Y; // Keep same Y level
         var direction = (targetPosition - spawnPosition).Normalized();

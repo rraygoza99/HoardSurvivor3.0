@@ -41,10 +41,9 @@ func start_game():
 			load_world.rpc_id(player)
 			
 		var startPos := spawnPositions[spawnLocation].global_position;
-		
+		spawnLocation += 1
 		load_player.rpc_id(player, player, startPos)
 		teleport_player.rpc_id(player, startPos)
-		spawnLocation += 1
 	pass
 	
 func end_game():
