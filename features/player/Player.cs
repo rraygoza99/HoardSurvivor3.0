@@ -31,6 +31,13 @@ public partial class Player : CharacterBody3D
 		SetProcess(isMultiplayerAuthority);
 		SetPhysicsProcess(isMultiplayerAuthority);
 
+		// Setup collision layers - players on layer 2
+		SetCollisionLayerValue(1, false);  // Not on ground layer
+		SetCollisionLayerValue(2, true);   // On player layer
+		SetCollisionMaskValue(1, true);    // Collide with ground/environment
+		SetCollisionMaskValue(2, false);   // Don't collide with other players
+		SetCollisionMaskValue(3, false);   // Don't collide with enemies (phase through)
+
 		GlobalPosition = StartPosition;
 		
 		if (!isMultiplayerAuthority)

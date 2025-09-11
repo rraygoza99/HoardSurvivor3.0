@@ -49,9 +49,17 @@ public partial class EnemyPool : Node
             // Reset velocity to prevent crazy values when retrieved from pool
             chaser.Velocity = Vector3.Zero;
             
-            // Ensure collision and navigation are enabled
-            chaser.SetCollisionLayerValue(1, true);
-            chaser.SetCollisionMaskValue(1, true);
+            // Setup collision layers - enemies on layer 3, collide with ground and other enemies
+            // This allows players to walk through enemies while enemies can still pathfind
+            chaser.SetCollisionLayerValue(1, false);  // Not on ground layer
+            chaser.SetCollisionLayerValue(2, false);  // Not on player layer
+            chaser.SetCollisionLayerValue(3, true);   // On enemy layer
+            chaser.SetCollisionMaskValue(1, true);    // Collide with ground/environment
+            chaser.SetCollisionMaskValue(2, false);   // Don't physically interact with players
+            chaser.SetCollisionMaskValue(3, true);    // DO collide with other enemies to prevent stacking
+            
+            // Add back to enemies group for targeting (Reset() will also do this, but make sure)
+            chaser.AddToGroup("enemies");
             
             GD.Print($"Retrieved chaser from pool. Pool count: {_chaserPool.Count}");
         }
@@ -76,14 +84,31 @@ public partial class EnemyPool : Node
         if (chaser == null || chaser.IsQueuedForDeletion())
             return;
 
+        // Completely disable the enemy while in pool
         chaser.Hide();
         chaser.Visible = false;
         chaser.SetProcess(false);
         chaser.SetPhysicsProcess(false);
         
+        // Disable all collision while in pool
+        chaser.SetCollisionLayerValue(1, false);
+        chaser.SetCollisionLayerValue(2, false);
+        chaser.SetCollisionLayerValue(3, false);
+        chaser.SetCollisionMaskValue(1, false);
+        chaser.SetCollisionMaskValue(2, false);
+        chaser.SetCollisionMaskValue(3, false);
+        
+        // Remove from enemies group so it doesn't interfere with targeting
+        chaser.RemoveFromGroup("enemies");
+        
+        // Move to a far-away location to prevent any interference
+        chaser.GlobalPosition = new Vector3(10000, -1000, 10000);
+        
         // Reset velocity before calling Reset() to prevent crazy values
         chaser.Velocity = Vector3.Zero;
         chaser.Reset(); // Reset chaser state
+        
+        GD.Print($"Enemy disabled and moved to storage location: {chaser.GlobalPosition}");
         
         // Only return to pool if we have space
         if (_chaserPool.Count < POOL_SIZE)

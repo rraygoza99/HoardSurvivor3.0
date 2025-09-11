@@ -20,14 +20,27 @@ public partial class CocoChaser : CharacterBody3D
 	private float _lastAttackTime = 0.0f;
 	private float _playerUpdateTimer = 0.0f;
 	private const float PLAYER_UPDATE_INTERVAL = 2.0f; // Update target player every 2 seconds
+	private int _enemyId = 0; // Unique ID for positioning offset
+	private static int _nextEnemyId = 0; // Static counter for unique IDs
 	
 	public override void _Ready(){
+		// Assign unique ID for enemy positioning
+		_enemyId = _nextEnemyId++;
+		
 		_player = FindNearestPlayer();
 		_navAgent = GetNode<NavigationAgent3D>("NavigationAgent3D");
 		_animationTree = GetNode<AnimationTree>("AnimationTree");
 		Velocity = Vector3.Zero;
 		// Add to enemies group for targeting
 		AddToGroup("enemies");
+		
+		// Setup collision layers - enemies on layer 3, collide with ground and other enemies
+		SetCollisionLayerValue(1, false);  // Not on ground layer
+		SetCollisionLayerValue(2, false);  // Not on player layer  
+		SetCollisionLayerValue(3, true);   // On enemy layer
+		SetCollisionMaskValue(1, true);    // Collide with ground/environment
+		SetCollisionMaskValue(2, false);   // Don't physically interact with players
+		SetCollisionMaskValue(3, true);    // DO collide with other enemies to prevent stacking
 		
 		// Setup navigation agent after a frame
 		CallDeferred(nameof(SetupNavigation));
@@ -65,6 +78,57 @@ public partial class CocoChaser : CharacterBody3D
 		return nearestPlayer;
 	}
 	
+	private Vector3 GetSpreadTargetPosition(Vector3 playerPosition)
+	{
+		// Create spread pattern around player using enemy ID
+		float spread = 2.0f; // Distance from player center
+		float angleOffset = (_enemyId * 60.0f) % 360.0f; // 60 degrees apart, wrapping around
+		float angleRad = Mathf.DegToRad(angleOffset);
+		
+		// Calculate offset position in a circle around the player
+		Vector3 offset = new Vector3(
+			Mathf.Cos(angleRad) * spread,
+			0.0f, // Keep on same Y level
+			Mathf.Sin(angleRad) * spread
+		);
+		
+		Vector3 targetPosition = playerPosition + offset;
+		
+		return targetPosition;
+	}
+	
+	private Vector3 CalculateSeparationForce()
+	{
+		Vector3 separationForce = Vector3.Zero;
+		var nearbyEnemies = GetTree().GetNodesInGroup("enemies");
+		float separationDistance = 1.5f; // Distance to maintain from other enemies
+		int neighborCount = 0;
+		
+		foreach (Node3D enemy in nearbyEnemies)
+		{
+			if (enemy == this || enemy == null) continue;
+			
+			float distance = GlobalPosition.DistanceTo(enemy.GlobalPosition);
+			if (distance < separationDistance && distance > 0.1f) // Avoid division by zero
+			{
+				// Calculate direction away from this enemy
+				Vector3 awayDirection = (GlobalPosition - enemy.GlobalPosition).Normalized();
+				// Stronger force when closer
+				float force = (separationDistance - distance) / separationDistance;
+				separationForce += awayDirection * force;
+				neighborCount++;
+			}
+		}
+		
+		// Average the separation force
+		if (neighborCount > 0)
+		{
+			separationForce /= neighborCount;
+		}
+		
+		return separationForce;
+	}
+	
 	public override void _PhysicsProcess(double delta){
 		_lastAttackTime += (float)delta;
 		_playerUpdateTimer += (float)delta;
@@ -97,10 +161,17 @@ public partial class CocoChaser : CharacterBody3D
 		
 		if (_navAgent.IsNavigationFinished() == false)
 		{
-			_navAgent.TargetPosition = _player.GlobalPosition;
+			// Use spread positioning instead of exact player position
+			Vector3 spreadTarget = GetSpreadTargetPosition(_player.GlobalPosition);
+			_navAgent.TargetPosition = spreadTarget;
 			Vector3 nextPathPosition = _navAgent.GetNextPathPosition();
 			
 			Vector3 direction = (nextPathPosition - GlobalPosition).Normalized();
+			
+			// Add separation force to prevent clustering
+			Vector3 separationForce = CalculateSeparationForce();
+			direction += separationForce * 0.3f; // Mix in 30% separation force
+			direction = direction.Normalized();
 			
 			if (direction.Length() > 0.1f) // Only move if we have a valid direction
 			{
@@ -208,6 +279,9 @@ public partial class CocoChaser : CharacterBody3D
 
 	public void Reset()
 	{
+		// Assign new unique ID for positioning when reset
+		_enemyId = _nextEnemyId++;
+		
 		// Reset all enemy state to default values
 		Health = 30.0f;
 		Speed = 3.0f;
@@ -234,9 +308,14 @@ public partial class CocoChaser : CharacterBody3D
 			AddToGroup("enemies");
 		}
 		
-		// Enable collision
-		SetCollisionLayerValue(1, true);
-		SetCollisionMaskValue(1, true);
+		// Setup collision layers - enemies on layer 3, collide with ground and other enemies
+		// This allows players to walk through enemies while enemies can still pathfind
+		SetCollisionLayerValue(1, false);  // Not on ground layer
+		SetCollisionLayerValue(2, false);  // Not on player layer
+		SetCollisionLayerValue(3, true);   // On enemy layer
+		SetCollisionMaskValue(1, true);    // Collide with ground/environment
+		SetCollisionMaskValue(2, false);   // Don't physically interact with players
+		SetCollisionMaskValue(3, true);    // DO collide with other enemies to prevent stacking
 		
 		GD.Print("CocoChaser reset to default state");
 	}
