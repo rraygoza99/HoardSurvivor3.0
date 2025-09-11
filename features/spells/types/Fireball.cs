@@ -23,7 +23,7 @@ namespace HoardSurvivor3._0.Features.Spells
             CritChance = 0.1f;
             CritDamage = 1.5f;
             Size = 2f;
-            CurrentCooldown = 0f;
+            CurrentCooldown = 3f;
             ProjectileSpeed = 5f;
         }
 
@@ -80,6 +80,13 @@ namespace HoardSurvivor3._0.Features.Spells
         public override void _Ready()
         {
             BodyEntered += OnBodyEntered;
+            
+            // Set projectile on layer 4 and detect enemies on layer 3
+            SetCollisionLayerValue(4, true);   // Projectiles on layer 4
+            SetCollisionMaskValue(1, true);    // Detect environment/boundaries
+            SetCollisionMaskValue(3, true);    // Detect enemies
+            SetCollisionMaskValue(2, false);   // Don't detect players
+            
             //SetDirectionToNearestEnemy();
         }
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://deok6m4sw04ca"]
+[gd_scene load_steps=10 format=3 uid="uid://deok6m4sw04ca"]
 
 [ext_resource type="Script" uid="uid://bfvl8kl5igens" path="res://features/world/testMap/test_world.gd" id="1_kx1tt"]
 [ext_resource type="PackedScene" uid="uid://dkppwqp6okv65" path="res://features/world/sky/world_environment.tscn" id="1_pk70n"]
@@ -15,6 +15,8 @@ size = Vector2(50, 50)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1qr10"]
 size = Vector3(50, 1, 50)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_74g2j"]
 
 [node name="TestWorld" type="Node3D" node_paths=PackedStringArray("spawnLocations")]
 script = ExtResource("1_kx1tt")
@@ -33,19 +35,19 @@ shape = SubResource("BoxShape3D_1qr10")
 [node name="WorldEnvironment" parent="." instance=ExtResource("1_pk70n")]
 
 [node name="SpawnLocation" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="SpawnLocation2" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.697, 2, 0)
 
 [node name="SpawnLocation3" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.322, 2, 5.143)
 
 [node name="SpawnLocation4" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 3.651)
 
 [node name="SpawnLocation5" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -2.667)
 
 [node name="Enemies" type="Node3D" parent="."]
 
@@ -58,3 +60,6 @@ enemy_spawn_node = NodePath("../Enemies")
 
 [node name="ProjectilePool" type="Node" parent="."]
 script = ExtResource("5_74g2j")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_74g2j")

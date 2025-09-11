@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bkwf2l5sj8thi"]
+
+[ext_resource type="Script" path="res://features/enemies/EnemyPool.cs" id="1_0hlq2"]
+
+[node name="EnemyPool" type="Node"]
+script = ExtResource("1_0hlq2")
