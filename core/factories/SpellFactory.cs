@@ -1,5 +1,6 @@
 using System;
 using HoardSurvivor3._0.Core.Enums;
+using HoardSurvivor3._0.Features.Spells;
 using HoardSurvivor3._0.Features.Spells.Base;
 
 namespace Core.Factories

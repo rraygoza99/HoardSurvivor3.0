@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://deok6m4sw04ca"]
+[gd_scene load_steps=9 format=3 uid="uid://deok6m4sw04ca"]
 
 [ext_resource type="Script" uid="uid://bfvl8kl5igens" path="res://features/world/testMap/test_world.gd" id="1_kx1tt"]
 [ext_resource type="PackedScene" uid="uid://dkppwqp6okv65" path="res://features/world/sky/world_environment.tscn" id="1_pk70n"]
 [ext_resource type="PackedScene" uid="uid://b66mrj8jmqun3" path="res://features/enemies/enemies_spawner.tscn" id="3_8su4o"]
 [ext_resource type="Script" uid="uid://bnfhhy75ftqmt" path="res://Scripts/EnemySpawner/SpawnEnemy.gd" id="4_d6eqb"]
+[ext_resource type="Script" uid="uid://ky0mmp1c13ea" path="res://features/spells/SpellProjectilePool.cs" id="5_74g2j"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mf2l"]
 albedo_color = Color(0.0056274, 0.485383, 0, 1)
@@ -52,3 +53,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, 0)
 script = ExtResource("4_d6eqb")
 spawn_location = [NodePath("../SpawnLocation"), NodePath("../SpawnLocation2")]
 enemy_spawn_node = NodePath("../Enemies")
+
+[node name="Fireballs" type="Node3D" parent="."]
+
+[node name="ProjectilePool" type="Node" parent="."]
+script = ExtResource("5_74g2j")
