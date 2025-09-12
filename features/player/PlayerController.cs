@@ -31,6 +31,12 @@ public partial class PlayerController : CharacterBody3D
     private Godot.Vector3 direction = Godot.Vector3.Zero;
 
     private bool canCast = true;
+    public Area3D pickupArea;
+    [ExportGroup("Player Stats")]
+    [Export] public int CurrentXp { get; private set; } = 0;
+    [Export] float XpGainMultiplier { get; set; } = 1.0f;
+    [Export] public int XpToNextLevel { get; private set; } = 100;
+    [Export] public int CurrentLevel { get; private set; } = 1;
 
     public int MultiplayerAuthority
     {
@@ -51,14 +57,14 @@ public partial class PlayerController : CharacterBody3D
     public override void _Ready()
     {
         var isMultiplayerAuthority = IsMultiplayerAuthority();
-        
+
         // Initialize velocity to zero to prevent crazy initial values
         Velocity = Vector3.Zero;
-        
+
         // Initialize character based on scene name
         string nodeName = Name.ToString();
         string characterName = nodeName.Contains("_") ? nodeName.Split("_")[1] : "Wizgod";
-        
+
         // Initialize the correct character based on the scene name
         switch (characterName.ToLower())
         {
@@ -86,7 +92,7 @@ public partial class PlayerController : CharacterBody3D
                 Initialize(new Wizgod());
                 break;
         }
-        
+
         SetProcess(isMultiplayerAuthority);
         SetPhysicsProcess(isMultiplayerAuthority);
 
@@ -97,25 +103,25 @@ public partial class PlayerController : CharacterBody3D
         _playerInputs = new PlayerInputs(this);
         _animationTree = GetNode<AnimationTree>("AnimationTree");
         _animationTree.Active = true;
-        
+
         // Initialize spell casting
         _spells = character.Spells;
         _fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
-        
+
         var main = GetTree().Root.GetNode<Node>("Main");
-		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
+        main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
     }
     public override void _Process(double delta)
     {
         _playerInputs.Handler();
-        
+
         foreach (var spell in _spells)
         {
             spell.UpdateCooldown((float)delta);
         }
 
         CastSpells();
-    
+
         // ADD THIS MISSING BATCH TIMER LOGIC:
         _rpcBatchTimer += (float)delta;
         if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
@@ -133,87 +139,87 @@ public partial class PlayerController : CharacterBody3D
     private void UpdateMovement(double delta)
     {
         Vector3 velocity = Velocity;
-        
+
         // Clamp velocity to prevent insane values
         if (velocity.Length() > 100.0f)
         {
             velocity = Vector3.Zero;
         }
-        
+
         if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
-		
-		// Get the input direction and handle the movement/deceleration.
-		Vector3 direction = _playerInputs.CalculatedDirection;
-		if (_playerInputs.IsMoving)
-		{
-			velocity.X = direction.X * moveSpeed;
-			velocity.Z = direction.Z * moveSpeed;
+        {
+            velocity += GetGravity() * (float)delta;
+        }
 
-            Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection*3;
+        // Get the input direction and handle the movement/deceleration.
+        Vector3 direction = _playerInputs.CalculatedDirection;
+        if (_playerInputs.IsMoving)
+        {
+            velocity.X = direction.X * moveSpeed;
+            velocity.Z = direction.Z * moveSpeed;
+
+            Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection * 3;
             _playerModel.LookAt(lookTarget);
-			_animationTree.Set("parameters/conditions/Run", true);
-			_animationTree.Set("parameters/conditions/Idle", false);
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(velocity.X, 0, moveSpeed);
-			velocity.Z = Mathf.MoveToward(velocity.Z, 0, moveSpeed);
-			_animationTree.Set("parameters/conditions/Run", false);
+            _animationTree.Set("parameters/conditions/Run", true);
+            _animationTree.Set("parameters/conditions/Idle", false);
+        }
+        else
+        {
+            velocity.X = Mathf.MoveToward(velocity.X, 0, moveSpeed);
+            velocity.Z = Mathf.MoveToward(velocity.Z, 0, moveSpeed);
+            _animationTree.Set("parameters/conditions/Run", false);
             _animationTree.Set("parameters/conditions/Idle", true);
-		}
+        }
 
-		Velocity = velocity;
-		MoveAndSlide();
+        Velocity = velocity;
+        MoveAndSlide();
     }
     private void OnPlayerTeleport(Vector3 newPosition)
-	{
-		GD.Print("Teleporting.. - ", Name);
-		GD.Print("New pos: ", newPosition);
-		
-		// Reset velocity BEFORE moving to prevent physics conflicts
-		Velocity = Vector3.Zero;
-		
-		// Disable physics temporarily to prevent conflicts
-		SetPhysicsProcess(false);
-		
-		// Ensure player spawns above ground level
-		var space_state = GetWorld3D().DirectSpaceState;
-		var query = PhysicsRayQueryParameters3D.Create(
-			newPosition + Vector3.Up * 10,  // Start further above
-			newPosition + Vector3.Down * 10  // Ray down to find ground
-		);
-		query.CollisionMask = 1;  // Ground layer
-		
-		var result = space_state.IntersectRay(query);
-		if (result.ContainsKey("position"))
-		{
-			var groundPosition = result["position"].AsVector3();
-			// Spawn 2 units above ground to be safe
-			GlobalPosition = groundPosition + Vector3.Up * 2.0f;
-			GD.Print("Adjusted spawn position to: ", GlobalPosition);
-		}
-		else
-		{
-			// Fallback: use the original position but add more height
-			GlobalPosition = newPosition + Vector3.Up * 3.0f;
-			GD.Print("No ground found, using elevated position: ", GlobalPosition);
-		}
-		
-		// Force reset velocity again after position change
-		Velocity = Vector3.Zero;
-		
-		// Re-enable physics and force a reset
-		CallDeferred(nameof(ResetPhysicsAfterTeleport));
-	}
-	
-	private void ResetPhysicsAfterTeleport()
-	{
-		Velocity = Vector3.Zero;
-		SetPhysicsProcess(IsMultiplayerAuthority());
-	}
+    {
+        GD.Print("Teleporting.. - ", Name);
+        GD.Print("New pos: ", newPosition);
+
+        // Reset velocity BEFORE moving to prevent physics conflicts
+        Velocity = Vector3.Zero;
+
+        // Disable physics temporarily to prevent conflicts
+        SetPhysicsProcess(false);
+
+        // Ensure player spawns above ground level
+        var space_state = GetWorld3D().DirectSpaceState;
+        var query = PhysicsRayQueryParameters3D.Create(
+            newPosition + Vector3.Up * 10,  // Start further above
+            newPosition + Vector3.Down * 10  // Ray down to find ground
+        );
+        query.CollisionMask = 1;  // Ground layer
+
+        var result = space_state.IntersectRay(query);
+        if (result.ContainsKey("position"))
+        {
+            var groundPosition = result["position"].AsVector3();
+            // Spawn 2 units above ground to be safe
+            GlobalPosition = groundPosition + Vector3.Up * 2.0f;
+            GD.Print("Adjusted spawn position to: ", GlobalPosition);
+        }
+        else
+        {
+            // Fallback: use the original position but add more height
+            GlobalPosition = newPosition + Vector3.Up * 3.0f;
+            GD.Print("No ground found, using elevated position: ", GlobalPosition);
+        }
+
+        // Force reset velocity again after position change
+        Velocity = Vector3.Zero;
+
+        // Re-enable physics and force a reset
+        CallDeferred(nameof(ResetPhysicsAfterTeleport));
+    }
+
+    private void ResetPhysicsAfterTeleport()
+    {
+        Velocity = Vector3.Zero;
+        SetPhysicsProcess(IsMultiplayerAuthority());
+    }
 
     private void CastSpells()
     {
@@ -241,7 +247,7 @@ public partial class PlayerController : CharacterBody3D
         var targetPosition = nearestEnemy.GlobalPosition;
         targetPosition.Y = spawnPosition.Y; // Keep same Y level
         var direction = (targetPosition - spawnPosition).Normalized();
-    
+
         fireballSpell.Cast();
         _pendingSpells.Enqueue(new SpellCastData("Fireball", spawnPosition, direction, fireballSpell.Damage, fireballSpell.ProjectileSpeed));
 
@@ -278,7 +284,7 @@ public partial class PlayerController : CharacterBody3D
             fireball.GlobalPosition = spawnPosition;
             fireball.Initialize(damage, speed, direction, spawnPosition);
             fireball.Show();
-            
+
         }
         // Add other spell types here as you implement them
     }
@@ -290,6 +296,8 @@ public partial class PlayerController : CharacterBody3D
 
         foreach (var enemy in enemies)
         {
+            if (enemy is CocoChaser chaser && (!chaser.Visible || chaser.GlobalPosition.X > 5000))
+                continue;
             var distance = GlobalPosition.DistanceTo(enemy.GlobalPosition);
             if (distance < minDistance)
             {
@@ -300,5 +308,29 @@ public partial class PlayerController : CharacterBody3D
 
         return nearestEnemy;
     }
+
+    public void GainXp(int amount)
+    {
+        int modifiedAmount = Mathf.RoundToInt(amount * XpGainMultiplier);
+        CurrentXp += modifiedAmount;
+        if (CurrentXp >= XpToNextLevel)
+        {
+            //LevelUp();
+        }
+        //UpdateXpCircle();
+    }
+    private void _on_pickup_area_area_entered(Area3D area){
+		if (area is XpOrb orb)
+		{
+			orb.StartSeeking(this);
+		}
+	}
+	private void _on_collection_area_area_entered(Area3D area)
+	{
+		if(area is XpOrb orb){
+			GainXp(orb.XpAmount);
+			orb.QueueFree();
+		}
+	}
 
 }

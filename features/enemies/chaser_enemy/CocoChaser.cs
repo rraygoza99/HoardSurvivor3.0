@@ -10,7 +10,7 @@ public partial class CocoChaser : CharacterBody3D
 	[Export] public float AttackCooldown {get; set;} = 1.0f; // Time between attacks
 	
 	[ExportGroup("Loot")]
-	//[Export] private PackedScene _xpOrbScene;
+	[Export] private PackedScene _xpOrbScene;
 	[Export] private int _xpAmount = 10;
 	[Export] private float _mergeRadius = 1.5f;
 	
@@ -229,7 +229,7 @@ public partial class CocoChaser : CharacterBody3D
 			}
 		}
 	}
-	/*private void DropXpOrb()
+	private void DropXpOrb()
 	{
 		if (_xpOrbScene == null) return;
 
@@ -253,12 +253,12 @@ public partial class CocoChaser : CharacterBody3D
 		newOrb.SetInitialValue(_xpAmount);
 		GetParent().AddChild(newOrb); // Add to the main scene
 		newOrb.GlobalPosition = this.GlobalPosition;
-	}*/
+	}
 	public void TakeDamage(float damage){
 		Health -= damage;
 		GD.Print($"CocoChaser took {damage} damage. Health: {Health}");
 		if(Health <= 0){
-			//DropXpOrb();
+			DropXpOrb();
 			GD.Print("CocoChaser destroyed");
 			Die();
 		}

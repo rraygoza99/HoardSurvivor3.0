@@ -146,6 +146,7 @@ namespace HoardSurvivor3._0.Features.Spells
             if (body.IsInGroup("enemies"))
             {
                 GD.Print($"Fireball hit an enemy: {body.Name}");
+                body.Call("TakeDamage", _damage);
                 ReturnToPool(); // Return to pool instead of QueueFree()
             }
         }
