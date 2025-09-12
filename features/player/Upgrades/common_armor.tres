@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://dvkc2eympalqm"]
+
+[ext_resource type="Script" path="res://features/player/xp/level_up/Upgrade.cs" id="1_3ignf"]
+
+[resource]
+script = ExtResource("1_3ignf")
+Name = "Armor (Common)"
+Description = "Increase armor by 10"
+Rarity = 0
+StatToUpgrade = 7
+Value = 10.0
+metadata/_custom_type_script = "uid://bujpibpep1yxw"

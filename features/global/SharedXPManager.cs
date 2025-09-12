@@ -11,6 +11,7 @@ public partial class SharedXPManager : Node
     [Signal] public delegate void SharedXpGainedEventHandler(int amount, int totalXp);
     [Signal] public delegate void SharedLevelUpEventHandler(int newLevel);
     [Signal] public delegate void SharedXpChangedEventHandler(int currentXp, int xpToNext, int level);
+    [Signal] public delegate void ShowLevelUpScreenEventHandler(int newLevel); // New signal for level up screen
     
     public override void _Ready()
     {
@@ -94,6 +95,7 @@ public partial class SharedXPManager : Node
     private void OnSharedLevelUp(int newLevel)
     {
         EmitSignal(SignalName.SharedLevelUp, newLevel);
+        EmitSignal(SignalName.ShowLevelUpScreen, newLevel); // Trigger level up screen for all players
     }
     
     private void OnSharedXpChanged(int currentXp, int xpToNext, int level)

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://cqjsjsf6buhrk"]
+
+[ext_resource type="Script" path="res://features/player/xp/level_up/Upgrade.cs" id="1_kp0hk"]
+
+[resource]
+script = ExtResource("1_kp0hk")
+Name = "Lifesteal (Common)"
+Description = "Heal by 0.1% of the damage done to enemies"
+Rarity = 0
+StatToUpgrade = 4
+Value = 0.1
+metadata/_custom_type_script = "uid://bujpibpep1yxw"

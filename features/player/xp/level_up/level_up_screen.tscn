@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://de0c5bprdp1ps"]
+
+[ext_resource type="Script" uid="uid://dj8rpgkq2ieid" path="res://features/player/xp/level_up/LevelUpScreen.cs" id="1_jp5ew"]
+
+[node name="LevelUpScreen" type="Control"]
+process_mode = 2
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_jp5ew")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1277.0
+offset_bottom = 721.0
+color = Color(0.158123, 0.237747, 0.411579, 0.356863)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 0
+offset_right = 1155.0
+offset_bottom = 648.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30

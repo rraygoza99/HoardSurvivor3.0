@@ -31,6 +31,10 @@ public partial class PlayerController : CharacterBody3D
     private Godot.Vector3 direction = Godot.Vector3.Zero;
 
     private bool canCast = true;
+    
+    // Level up system components
+    private LevelUpScreen _levelUpScreen;
+    private UpgradeManager _upgradeManager;
     public Area3D pickupArea;
     [ExportGroup("Player Stats")]
     // Individual XP properties are no longer used - keeping for compatibility
@@ -117,6 +121,7 @@ public partial class PlayerController : CharacterBody3D
         {
             SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
             SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
+            SharedXPManager.Instance.ShowLevelUpScreen += OnShowLevelUpScreen;
             
             // Sync current values from shared system
             SyncWithSharedXP();
@@ -127,6 +132,9 @@ public partial class PlayerController : CharacterBody3D
             // Try again after a short delay
             CallDeferred(nameof(TryConnectToSharedXP));
         }
+        
+        // Initialize level up system for each player (each gets their own screen and choices)
+        SetupLevelUpSystem();
     }
     
     private void TryConnectToSharedXP()
@@ -135,9 +143,110 @@ public partial class PlayerController : CharacterBody3D
         {
             SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
             SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
+            SharedXPManager.Instance.ShowLevelUpScreen += OnShowLevelUpScreen;
             SyncWithSharedXP();
             GD.Print("Successfully connected to SharedXPManager");
         }
+    }
+    
+    private void SetupLevelUpSystem()
+    {
+        // Load and instantiate level up screen
+        var levelUpScreenScene = GD.Load<PackedScene>("res://features/player/xp/level_up/level_up_screen.tscn");
+        if (levelUpScreenScene != null)
+        {
+            _levelUpScreen = levelUpScreenScene.Instantiate<LevelUpScreen>();
+            GetTree().CurrentScene.AddChild(_levelUpScreen);
+            _levelUpScreen.Hide(); // Hidden by default
+            _levelUpScreen.UpgradeChosen += OnUpgradeChosen;
+            GD.Print("Level up screen initialized");
+        }
+        else
+        {
+            GD.PrintErr("Could not load level up screen scene");
+        }
+        
+        // Initialize upgrade manager
+        _upgradeManager = new UpgradeManager();
+        AddChild(_upgradeManager);
+        
+        // Set the upgrade card scene reference
+        var upgradeCardScene = GD.Load<PackedScene>("res://features/player/xp/level_up/upgrade_card.tscn");
+        if (_levelUpScreen != null && upgradeCardScene != null)
+        {
+            _levelUpScreen.Set("_upgradeCardScene", upgradeCardScene);
+        }
+        
+        // Load all upgrade resources into the manager
+        LoadUpgradeResources();
+    }
+    
+    private void LoadUpgradeResources()
+    {
+        var upgradePool = new Godot.Collections.Array<Upgrade>();
+        
+        // Define all upgrade files to load
+        string[] upgradeFiles = {
+            // Common upgrades
+            "res://features/player/Upgrades/common_arcane_wave_damage.tres",
+            "res://features/player/Upgrades/common_armor.tres",
+            "res://features/player/Upgrades/common_cooldown.tres",
+            "res://features/player/Upgrades/common_critical_chance.tres",
+            "res://features/player/Upgrades/common_critical_dmg.tres",
+            "res://features/player/Upgrades/common_general_damage.tres",
+            "res://features/player/Upgrades/common_health.tres",
+            "res://features/player/Upgrades/common_lifesteal.tres",
+            "res://features/player/Upgrades/common_luck.tres",
+            "res://features/player/Upgrades/common_magic_sphere_damage.tres",
+            "res://features/player/Upgrades/common_mortar_damage.tres",
+            "res://features/player/Upgrades/common_speed.tres",
+            "res://features/player/Upgrades/common_xp.tres",
+            // Rare upgrades
+            "res://features/player/Upgrades/rare_arcane_wave_damage.tres",
+            "res://features/player/Upgrades/rare_armor.tres",
+            "res://features/player/Upgrades/rare_cooldown.tres",
+            "res://features/player/Upgrades/rare_critical_chance.tres",
+            "res://features/player/Upgrades/rare_critical_dmg.tres",
+            "res://features/player/Upgrades/rare_general_damage.tres",
+            "res://features/player/Upgrades/rare_health.tres",
+            "res://features/player/Upgrades/rare_lifesteal.tres",
+            "res://features/player/Upgrades/rare_luck.tres",
+            "res://features/player/Upgrades/rare_magic_sphere_damage.tres",
+            "res://features/player/Upgrades/rare_mortar_damage.tres",
+            "res://features/player/Upgrades/rare_speed.tres",
+            "res://features/player/Upgrades/rare_xp.tres",
+            // Legendary upgrades
+            "res://features/player/Upgrades/legendary_arcane_wave_damage.tres",
+            "res://features/player/Upgrades/legendary_armor.tres",
+            "res://features/player/Upgrades/legendary_cooldown.tres",
+            "res://features/player/Upgrades/legendary_critical_chance.tres",
+            "res://features/player/Upgrades/legendary_critical_dmg.tres",
+            "res://features/player/Upgrades/legendary_general_damage.tres",
+            "res://features/player/Upgrades/legendary_health.tres",
+            "res://features/player/Upgrades/legendary_lifesteal.tres",
+            "res://features/player/Upgrades/legendary_luck.tres",
+            "res://features/player/Upgrades/legendary_magic_sphere_damage.tres",
+            "res://features/player/Upgrades/legendary_mortar_damage.tres",
+            "res://features/player/Upgrades/legendary_speed.tres",
+            "res://features/player/Upgrades/legendary_xp.tres"
+        };
+        
+        foreach (string path in upgradeFiles)
+        {
+            var upgrade = GD.Load<Upgrade>(path);
+            if (upgrade != null)
+            {
+                upgradePool.Add(upgrade);
+            }
+            else
+            {
+                GD.PrintErr($"Could not load upgrade: {path}");
+            }
+        }
+        
+        // Set the upgrade pool in the manager
+        _upgradeManager.Set("_upgradePool", upgradePool);
+        GD.Print($"Loaded {upgradePool.Count} upgrades into manager");
     }
     
     private void SyncWithSharedXP()
@@ -168,6 +277,99 @@ public partial class PlayerController : CharacterBody3D
     {
         GD.Print($"Shared level up! New level: {newLevel}");
         // TODO: Trigger level up effects, sounds, etc.
+    }
+    
+    private void OnShowLevelUpScreen(int newLevel)
+    {
+        // Each player shows their own level up screen with different upgrade choices
+        if (_levelUpScreen != null && _upgradeManager != null)
+        {
+            GD.Print($"Showing level up screen for level {newLevel}");
+            
+            // Get upgrade choices (each player gets different random options)
+            var upgradeChoices = _upgradeManager.GetUpgradeChoices(0.0f); // TODO: Use actual luck stat
+            
+            if (upgradeChoices.Count > 0)
+            {
+                _levelUpScreen.DisplayUpgrades(upgradeChoices);
+            }
+            else
+            {
+                GD.PrintErr("No upgrade choices available for level up");
+            }
+        }
+        else
+        {
+            GD.PrintErr("Level up screen or upgrade manager not initialized");
+        }
+    }
+    
+    private void OnUpgradeChosen(Upgrade upgrade)
+    {
+        GD.Print($"Player chose upgrade: {upgrade.Name} (+{upgrade.Value} {upgrade.StatToUpgrade})");
+        
+        // Apply the chosen upgrade to this player
+        ApplyUpgrade(upgrade);
+        
+        // TODO: You might want to sync the chosen upgrade to other players for display purposes
+        // or handle upgrade effects that affect shared gameplay
+    }
+    
+    private void ApplyUpgrade(Upgrade upgrade)
+    {
+        // Apply upgrade effects based on the stat type
+        switch (upgrade.StatToUpgrade)
+        {
+            case Stat.MaxHealth:
+                // TODO: Apply health upgrade to character stats
+                GD.Print($"Applied health upgrade: +{upgrade.Value}");
+                break;
+            case Stat.MovementSpeed:
+                moveSpeed += upgrade.Value;
+                GD.Print($"Applied speed upgrade: +{upgrade.Value}. New speed: {moveSpeed}");
+                break;
+            case Stat.XpGain:
+                XpGainMultiplier *= (1.0f + upgrade.Value);
+                GD.Print($"Applied XP gain upgrade: +{upgrade.Value * 100}%. New multiplier: {XpGainMultiplier:F2}x");
+                break;
+            case Stat.CooldownReduction:
+                // TODO: Apply cooldown reduction to spells
+                GD.Print($"Applied cooldown reduction: +{upgrade.Value}");
+                break;
+            case Stat.CriticalChance:
+                // TODO: Apply to character stats
+                GD.Print($"Applied critical chance: +{upgrade.Value}");
+                break;
+            case Stat.CriticalDamage:
+                // TODO: Apply to character stats
+                GD.Print($"Applied critical damage: +{upgrade.Value}");
+                break;
+            case Stat.Armor:
+                // TODO: Apply to character stats
+                GD.Print($"Applied armor: +{upgrade.Value}");
+                break;
+            case Stat.LifeSteal:
+                // TODO: Apply to character stats
+                GD.Print($"Applied life steal: +{upgrade.Value}");
+                break;
+            case Stat.Lucky:
+                // TODO: Apply to character stats for better upgrade chances
+                GD.Print($"Applied luck: +{upgrade.Value}");
+                break;
+            case Stat.GeneralDamage:
+                // TODO: Apply general damage bonus to all spells
+                GD.Print($"Applied general damage: +{upgrade.Value}");
+                break;
+            // Add cases for specific spell damage types
+            case Stat.MagicSphereDamage:
+            case Stat.ArcaneWaveDamage:
+            case Stat.MortarDamage:
+                GD.Print($"Applied {upgrade.StatToUpgrade} upgrade: +{upgrade.Value}");
+                break;
+            default:
+                GD.Print($"Unknown stat type: {upgrade.StatToUpgrade}");
+                break;
+        }
     }
     public override void _Process(double delta)
     {
