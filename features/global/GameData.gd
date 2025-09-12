@@ -3,8 +3,18 @@ extends Node
 # Store the player's character selection (lowercase ID)
 var selected_character: String = "wizgod"
 
+# Shared XP and Level system - all players have the same progression
+var shared_current_xp: int = 0
+var shared_xp_to_next_level: int = 100
+var shared_current_level: int = 1
+
 # Signal to notify when character changes
 signal character_changed(character_id: String)
+
+# Signals for shared XP system
+signal shared_xp_gained(amount: int, total_xp: int)
+signal shared_level_up(new_level: int)
+signal shared_xp_changed(current_xp: int, xp_to_next: int, level: int)
 
 # Display names mapping (lowercase id -> display name)
 var character_display_names = {
@@ -70,3 +80,42 @@ func get_character_display_name(character_id: String) -> String:
     if character_display_names.has(id):
         return character_display_names[id]
     return character_id
+
+# Shared XP System Functions
+func gain_shared_xp(amount: int) -> void:
+    shared_current_xp += amount
+    print("Shared XP gained: ", amount, " Total: ", shared_current_xp)
+    
+    # Check for level up
+    while shared_current_xp >= shared_xp_to_next_level:
+        level_up_shared()
+    
+    # Emit signal for UI updates
+    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+    shared_xp_gained.emit(amount, shared_current_xp)
+
+func level_up_shared() -> void:
+    shared_current_xp -= shared_xp_to_next_level
+    shared_xp_to_next_level = int(shared_xp_to_next_level * 1.5)  # Increase XP requirement
+    shared_current_level += 1
+    
+    print("Shared Level Up! New level: ", shared_current_level)
+    print("XP to next level: ", shared_xp_to_next_level)
+    
+    # Emit signals
+    shared_level_up.emit(shared_current_level)
+    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+
+func get_shared_xp_progress() -> Dictionary:
+    return {
+        "current_xp": shared_current_xp,
+        "xp_to_next_level": shared_xp_to_next_level,
+        "current_level": shared_current_level,
+        "xp_percentage": float(shared_current_xp) / float(shared_xp_to_next_level)
+    }
+
+func reset_shared_progression() -> void:
+    shared_current_xp = 0
+    shared_xp_to_next_level = 100
+    shared_current_level = 1
+    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)

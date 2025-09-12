@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://bx01xld7hg5fw"]
+
+[ext_resource type="Script" uid="uid://bujpibpep1yxw" path="res://features/player/xp/level_up/Upgrade.cs" id="1_t5xqv"]
+
+[resource]
+script = ExtResource("1_t5xqv")
+Name = "Vida media"
+Description = "Increase Max Health by 40"
+Rarity = 1
+StatToUpgrade = 0
+Value = 40.0
+metadata/_custom_type_script = "uid://bujpibpep1yxw"

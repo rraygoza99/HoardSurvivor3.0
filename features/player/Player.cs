@@ -10,6 +10,39 @@ public partial class Player : CharacterBody3D
 
 	[Export] private int _multiplayerAuthority;
 
+	// Base stats
+	[Export] private float _baseMaxHealth = 100.0f;
+	[Export] private float _baseMovementSpeed = 5.0f;
+	[Export] private float _baseXpGain = 1.0f;
+	[Export] private float _baseCooldownReduction = 0.0f;
+	[Export] private float _baseLifeSteal = 0.0f;
+	[Export] private float _baseCriticalChance = 0.0f;
+	[Export] private float _baseCriticalDamage = 1.5f;
+	[Export] private float _baseArmor = 0.0f;
+	[Export] private float _baseLucky = 0.0f;
+	[Export] private float _baseGeneralDamage = 1.0f;
+	[Export] private float _baseMagicSphereDamage = 1.0f;
+	[Export] private float _baseArcaneWaveDamage = 1.0f;
+	[Export] private float _baseMortarDamage = 1.0f;
+
+	// Current stats (base + upgrades)
+	public float MaxHealth { get; private set; }
+	public float MovementSpeed { get; private set; }
+	public float XpGain { get; private set; }
+	public float CooldownReduction { get; private set; }
+	public float LifeSteal { get; private set; }
+	public float CriticalChance { get; private set; }
+	public float CriticalDamage { get; private set; }
+	public float Armor { get; private set; }
+	public float Lucky { get; private set; }
+	public float GeneralDamage { get; private set; }
+	public float MagicSphereDamage { get; private set; }
+	public float ArcaneWaveDamage { get; private set; }
+	public float MortarDamage { get; private set; }
+
+	// Current health
+	public float CurrentHealth { get; private set; }
+
 	public int MultiplayerAuthority
 	{
 		get => _multiplayerAuthority;
@@ -26,6 +59,9 @@ public partial class Player : CharacterBody3D
 
 	public override void _Ready()
 	{
+		// Initialize stats with base values
+		InitializeStats();
+
 		var isMultiplayerAuthority = IsMultiplayerAuthority();
 		
 		SetProcess(isMultiplayerAuthority);
@@ -49,6 +85,118 @@ public partial class Player : CharacterBody3D
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
+	}
+
+	private void InitializeStats()
+	{
+		MaxHealth = _baseMaxHealth;
+		MovementSpeed = _baseMovementSpeed;
+		XpGain = _baseXpGain;
+		CooldownReduction = _baseCooldownReduction;
+		LifeSteal = _baseLifeSteal;
+		CriticalChance = _baseCriticalChance;
+		CriticalDamage = _baseCriticalDamage;
+		Armor = _baseArmor;
+		Lucky = _baseLucky;
+		GeneralDamage = _baseGeneralDamage;
+		MagicSphereDamage = _baseMagicSphereDamage;
+		ArcaneWaveDamage = _baseArcaneWaveDamage;
+		MortarDamage = _baseMortarDamage;
+
+		CurrentHealth = MaxHealth;
+		_speed = MovementSpeed; // Update the movement speed used in physics
+	}
+
+	public void ApplyUpgrade(Upgrade upgrade)
+	{
+		if (upgrade == null)
+		{
+			GD.PrintErr("Cannot apply null upgrade");
+			return;
+		}
+
+		GD.Print($"Applying upgrade: {upgrade.Name} (+{upgrade.Value} to {upgrade.StatToUpgrade})");
+
+		switch (upgrade.StatToUpgrade)
+		{
+			case Stat.MaxHealth:
+				var oldMaxHealth = MaxHealth;
+				MaxHealth += upgrade.Value;
+				// Heal the player proportionally when max health increases
+				var healthPercentage = CurrentHealth / oldMaxHealth;
+				CurrentHealth = MaxHealth * healthPercentage;
+				GD.Print($"Max Health: {oldMaxHealth} -> {MaxHealth}, Current Health: {CurrentHealth}");
+				break;
+
+			case Stat.MovementSpeed:
+				MovementSpeed += upgrade.Value;
+				_speed = MovementSpeed; // Update the physics speed
+				GD.Print($"Movement Speed: {MovementSpeed}");
+				break;
+
+			case Stat.XpGain:
+				XpGain += upgrade.Value;
+				GD.Print($"XP Gain: {XpGain}");
+				break;
+
+			case Stat.CooldownReduction:
+				CooldownReduction += upgrade.Value;
+				// Cap at 90% cooldown reduction
+				CooldownReduction = Mathf.Min(CooldownReduction, 90.0f);
+				GD.Print($"Cooldown Reduction: {CooldownReduction}%");
+				break;
+
+			case Stat.LifeSteal:
+				LifeSteal += upgrade.Value;
+				GD.Print($"Life Steal: {LifeSteal}%");
+				break;
+
+			case Stat.CriticalChance:
+				CriticalChance += upgrade.Value;
+				// Cap at 100% critical chance
+				CriticalChance = Mathf.Min(CriticalChance, 100.0f);
+				GD.Print($"Critical Chance: {CriticalChance}%");
+				break;
+
+			case Stat.CriticalDamage:
+				CriticalDamage += upgrade.Value;
+				GD.Print($"Critical Damage: {CriticalDamage}x");
+				break;
+
+			case Stat.Armor:
+				Armor += upgrade.Value;
+				GD.Print($"Armor: {Armor}");
+				break;
+
+			case Stat.Lucky:
+				Lucky += upgrade.Value;
+				GD.Print($"Lucky: {Lucky}");
+				break;
+
+			case Stat.GeneralDamage:
+				GeneralDamage += upgrade.Value;
+				GD.Print($"General Damage: {GeneralDamage}x");
+				break;
+
+			case Stat.MagicSphereDamage:
+				MagicSphereDamage += upgrade.Value;
+				GD.Print($"Magic Sphere Damage: {MagicSphereDamage}x");
+				break;
+
+			case Stat.ArcaneWaveDamage:
+				ArcaneWaveDamage += upgrade.Value;
+				GD.Print($"Arcane Wave Damage: {ArcaneWaveDamage}x");
+				break;
+
+			case Stat.MortarDamage:
+				MortarDamage += upgrade.Value;
+				GD.Print($"Mortar Damage: {MortarDamage}x");
+				break;
+
+			default:
+				GD.PrintErr($"Unknown stat type: {upgrade.StatToUpgrade}");
+				break;
+		}
 	}
 
 	public override void _Process(double delta)

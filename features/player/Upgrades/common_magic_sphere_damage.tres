@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://cvxd4gymrblso"]
+
+[ext_resource type="Script" path="res://features/player/xp/level_up/Upgrade.cs" id="1_3ignf"]
+
+[resource]
+script = ExtResource("1_3ignf")
+Name = "Magic Sphere Damage (Common)"
+Description = "Increase magic sphere damage by 9%"
+Rarity = 0
+StatToUpgrade = 10
+Value = 9.0
+metadata/_custom_type_script = "uid://bujpibpep1yxw"
