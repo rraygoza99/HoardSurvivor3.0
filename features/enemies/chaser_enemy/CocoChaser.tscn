@@ -20,6 +20,7 @@ transitions = ["Start", "run", SubResource("AnimationNodeStateMachineTransition_
 [node name="CocoChaser" type="CharacterBody3D"]
 script = ExtResource("1_xfv6d")
 _xpOrbScene = ExtResource("2_r0op7")
+_xpAmount = 50
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("SphereShape3D_xfv6d")
@@ -30,23 +31,23 @@ shape = SubResource("SphereShape3D_xfv6d")
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, -0.610524, 0)
 
 [node name="Skeleton3D" parent="tikiBaseEnemy/Armature" index="0"]
-bones/0/position = Vector3(0, 0.336348, 0)
-bones/1/scale = Vector3(1, 0.806287, 1)
-bones/4/rotation = Quaternion(0.270237, 0.663587, -0.653766, 0.243341)
-bones/5/rotation = Quaternion(-0.0269027, 0.000581588, 0.664116, 0.747145)
-bones/6/rotation = Quaternion(2.65851e-08, 2.67707e-08, 0.707107, 0.707107)
-bones/8/rotation = Quaternion(-1.31291e-10, -2.06961e-11, 7.89983e-09, 1)
-bones/12/rotation = Quaternion(0.565266, -0.447563, 0.42527, 0.547089)
-bones/13/rotation = Quaternion(-0.0203329, -0.000439577, -0.501936, 0.864666)
-bones/14/rotation = Quaternion(0.00503178, 0.00525411, -0.568639, 0.822555)
-bones/16/rotation = Quaternion(-0.00671915, -0.000145264, -0.165868, 0.986125)
-bones/18/position = Vector3(0, 0.336348, 0)
-bones/19/rotation = Quaternion(-0.576415, -0.409567, -0.409567, 0.576415)
-bones/20/rotation = Quaternion(5.59158e-08, 9.8368e-16, 0.735987, 0.676996)
-bones/21/position = Vector3(0, 0.336348, 0)
-bones/22/rotation = Quaternion(-0.669947, -0.22621, -0.22621, 0.669947)
-bones/23/rotation = Quaternion(-1.08338e-08, -6.16379e-15, 0.0860228, 0.996293)
-bones/24/position = Vector3(3.8273e-10, 0.553779, 0.482709)
+bones/0/position = Vector3(0, 0.335821, 0)
+bones/1/scale = Vector3(1, 0.964789, 1)
+bones/4/rotation = Quaternion(0.524685, 0.494907, -0.474492, 0.504608)
+bones/5/rotation = Quaternion(-0.0214758, 0.000464276, 0.530147, 0.847634)
+bones/6/rotation = Quaternion(2.61552e-08, 2.65718e-08, 0.707107, 0.707107)
+bones/8/rotation = Quaternion(-2.94549e-10, -4.65314e-10, 7.70357e-09, 1)
+bones/12/rotation = Quaternion(0.354392, -0.625486, 0.612302, 0.329029)
+bones/13/rotation = Quaternion(-0.0158869, -0.00034346, -0.392182, 0.91975)
+bones/14/rotation = Quaternion(0.00082416, 0.000860529, -0.686006, 0.727594)
+bones/16/rotation = Quaternion(-0.00109964, -2.37736e-05, -0.0271457, 0.999631)
+bones/18/position = Vector3(0, 0.335821, 0)
+bones/19/rotation = Quaternion(-0.704052, 0.0656591, 0.0656591, 0.704052)
+bones/20/rotation = Quaternion(5.44793e-08, 2.21289e-15, 0.7345, 0.678609)
+bones/21/position = Vector3(0, 0.335821, 0)
+bones/22/rotation = Quaternion(-0.70676, -0.0221353, -0.0221353, 0.70676)
+bones/23/rotation = Quaternion(-1.4418e-16, -1.01417e-15, 0.0229813, 0.999736)
+bones/24/position = Vector3(-6.17547e-11, 0.590198, 0.482709)
 
 [node name="AnimationTree" type="AnimationTree" parent="."]
 root_node = NodePath("../tikiBaseEnemy")
