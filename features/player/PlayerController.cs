@@ -21,6 +21,19 @@ public partial class PlayerController : CharacterBody3D
     public Vector3 StartPosition { get; set; }
     [Export] private Node3D _playerModel;
 
+    // Player stats affected by upgrades
+    [Export] float MaxHealth { get; set; } = 100.0f;
+    [Export] float CooldownReduction { get; set; } = 0.0f;
+    [Export] float LifeSteal { get; set; } = 0.0f;
+    [Export] float CriticalChance { get; set; } = 0.0f;
+    [Export] float CriticalDamage { get; set; } = 1.5f;
+    [Export] float Armor { get; set; } = 0.0f;
+    [Export] float Lucky { get; set; } = 0.0f;
+    [Export] float GeneralDamage { get; set; } = 1.0f;
+    [Export] float MagicSphereDamage { get; set; } = 1.0f;
+    [Export] float ArcaneWaveDamage { get; set; } = 1.0f;
+    [Export] float MortarDamage { get; set; } = 1.0f;
+
     // Spell casting related fields
     private PackedScene _fireballScene;
     private List<ISpell> _spells;
@@ -57,6 +70,7 @@ public partial class PlayerController : CharacterBody3D
     {
         character = selectedCharacter;
         moveSpeed = character.Stats.MoveSpeed;
+        MaxHealth = character.Stats.MaxHealth;
         currentHealth = character.Stats.MaxHealth;
     }
     public override void _Ready()
@@ -287,7 +301,7 @@ public partial class PlayerController : CharacterBody3D
             GD.Print($"Showing level up screen for level {newLevel}");
             
             // Get upgrade choices (each player gets different random options)
-            var upgradeChoices = _upgradeManager.GetUpgradeChoices(0.0f); // TODO: Use actual luck stat
+            var upgradeChoices = _upgradeManager.GetUpgradeChoices(Lucky);
             
             if (upgradeChoices.Count > 0)
             {
@@ -317,57 +331,92 @@ public partial class PlayerController : CharacterBody3D
     
     private void ApplyUpgrade(Upgrade upgrade)
     {
+        if (upgrade == null)
+        {
+            GD.PrintErr("Cannot apply null upgrade");
+            return;
+        }
+
+        GD.Print($"Applying upgrade: {upgrade.Name} (+{upgrade.Value} to {upgrade.StatToUpgrade})");
+
         // Apply upgrade effects based on the stat type
         switch (upgrade.StatToUpgrade)
         {
             case Stat.MaxHealth:
-                // TODO: Apply health upgrade to character stats
-                GD.Print($"Applied health upgrade: +{upgrade.Value}");
+                var oldMaxHealth = MaxHealth;
+                MaxHealth += upgrade.Value;
+                // Heal the player proportionally when max health increases
+                var healthPercentage = currentHealth / oldMaxHealth;
+                currentHealth = MaxHealth * healthPercentage;
+                GD.Print($"Max Health: {oldMaxHealth} -> {MaxHealth}, Current Health: {currentHealth}");
                 break;
+
             case Stat.MovementSpeed:
                 moveSpeed += upgrade.Value;
-                GD.Print($"Applied speed upgrade: +{upgrade.Value}. New speed: {moveSpeed}");
+                GD.Print($"Movement Speed: {moveSpeed}");
                 break;
+
             case Stat.XpGain:
-                XpGainMultiplier *= (1.0f + upgrade.Value);
-                GD.Print($"Applied XP gain upgrade: +{upgrade.Value * 100}%. New multiplier: {XpGainMultiplier:F2}x");
+                XpGainMultiplier *= (1.0f + upgrade.Value / 100.0f);
+                GD.Print($"Applied XP gain upgrade: +{upgrade.Value}%. New multiplier: {XpGainMultiplier:F2}x");
                 break;
+
             case Stat.CooldownReduction:
-                // TODO: Apply cooldown reduction to spells
-                GD.Print($"Applied cooldown reduction: +{upgrade.Value}");
+                CooldownReduction += upgrade.Value;
+                // Cap at 90% cooldown reduction
+                CooldownReduction = Mathf.Min(CooldownReduction, 90.0f);
+                GD.Print($"Cooldown Reduction: {CooldownReduction}%");
                 break;
-            case Stat.CriticalChance:
-                // TODO: Apply to character stats
-                GD.Print($"Applied critical chance: +{upgrade.Value}");
-                break;
-            case Stat.CriticalDamage:
-                // TODO: Apply to character stats
-                GD.Print($"Applied critical damage: +{upgrade.Value}");
-                break;
-            case Stat.Armor:
-                // TODO: Apply to character stats
-                GD.Print($"Applied armor: +{upgrade.Value}");
-                break;
+
             case Stat.LifeSteal:
-                // TODO: Apply to character stats
-                GD.Print($"Applied life steal: +{upgrade.Value}");
+                LifeSteal += upgrade.Value;
+                GD.Print($"Life Steal: {LifeSteal}%");
                 break;
+
+            case Stat.CriticalChance:
+                CriticalChance += upgrade.Value;
+                // Cap at 100% critical chance
+                CriticalChance = Mathf.Min(CriticalChance, 100.0f);
+                GD.Print($"Critical Chance: {CriticalChance}%");
+                break;
+
+            case Stat.CriticalDamage:
+                CriticalDamage += upgrade.Value;
+                GD.Print($"Critical Damage: {CriticalDamage}x");
+                break;
+
+            case Stat.Armor:
+                Armor += upgrade.Value;
+                GD.Print($"Armor: {Armor}");
+                break;
+
             case Stat.Lucky:
-                // TODO: Apply to character stats for better upgrade chances
-                GD.Print($"Applied luck: +{upgrade.Value}");
+                Lucky += upgrade.Value;
+                GD.Print($"Lucky: {Lucky}");
                 break;
+
             case Stat.GeneralDamage:
-                // TODO: Apply general damage bonus to all spells
-                GD.Print($"Applied general damage: +{upgrade.Value}");
+                GeneralDamage += upgrade.Value;
+                GD.Print($"General Damage: {GeneralDamage}x");
                 break;
-            // Add cases for specific spell damage types
+
             case Stat.MagicSphereDamage:
-            case Stat.ArcaneWaveDamage:
-            case Stat.MortarDamage:
-                GD.Print($"Applied {upgrade.StatToUpgrade} upgrade: +{upgrade.Value}");
+                MagicSphereDamage += upgrade.Value;
+                GD.Print($"Magic Sphere Damage: {MagicSphereDamage}x");
                 break;
+
+            case Stat.ArcaneWaveDamage:
+                ArcaneWaveDamage += upgrade.Value;
+                GD.Print($"Arcane Wave Damage: {ArcaneWaveDamage}x");
+                break;
+
+            case Stat.MortarDamage:
+                MortarDamage += upgrade.Value;
+                GD.Print($"Mortar Damage: {MortarDamage}x");
+                break;
+
             default:
-                GD.Print($"Unknown stat type: {upgrade.StatToUpgrade}");
+                GD.PrintErr($"Unknown stat type: {upgrade.StatToUpgrade}");
                 break;
         }
     }
@@ -509,7 +558,8 @@ public partial class PlayerController : CharacterBody3D
         var direction = (targetPosition - spawnPosition).Normalized();
 
         fireballSpell.Cast();
-        _pendingSpells.Enqueue(new SpellCastData("Fireball", spawnPosition, direction, fireballSpell.Damage, fireballSpell.ProjectileSpeed));
+        var fireballDamage = fireballSpell.Damage + (fireballSpell.Damage * GeneralDamage) + (fireballSpell.Damage * MagicSphereDamage);
+        _pendingSpells.Enqueue(new SpellCastData("Fireball", spawnPosition, direction, fireballDamage, fireballSpell.ProjectileSpeed));
 
     }
     private void SendBatchedSpells()
