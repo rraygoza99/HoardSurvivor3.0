@@ -33,6 +33,7 @@ public partial class PlayerController : CharacterBody3D
     private bool canCast = true;
     public Area3D pickupArea;
     [ExportGroup("Player Stats")]
+    // Individual XP properties are no longer used - keeping for compatibility
     [Export] public int CurrentXp { get; private set; } = 0;
     [Export] float XpGainMultiplier { get; set; } = 1.0f;
     [Export] public int XpToNextLevel { get; private set; } = 100;
@@ -110,6 +111,63 @@ public partial class PlayerController : CharacterBody3D
 
         var main = GetTree().Root.GetNode<Node>("Main");
         main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
+        
+        // Connect to shared XP system
+        if (SharedXPManager.Instance != null)
+        {
+            SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
+            SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
+            
+            // Sync current values from shared system
+            SyncWithSharedXP();
+        }
+        else
+        {
+            GD.Print("SharedXPManager not yet available, will try later");
+            // Try again after a short delay
+            CallDeferred(nameof(TryConnectToSharedXP));
+        }
+    }
+    
+    private void TryConnectToSharedXP()
+    {
+        if (SharedXPManager.Instance != null)
+        {
+            SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
+            SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
+            SyncWithSharedXP();
+            GD.Print("Successfully connected to SharedXPManager");
+        }
+    }
+    
+    private void SyncWithSharedXP()
+    {
+        if (SharedXPManager.Instance != null)
+        {
+            var progress = SharedXPManager.Instance.GetSharedXpProgress();
+            CurrentXp = progress["current_xp"].AsInt32();
+            XpToNextLevel = progress["xp_to_next_level"].AsInt32();
+            CurrentLevel = progress["current_level"].AsInt32();
+            
+            GD.Print($"Synced with shared XP: Level {CurrentLevel}, XP {CurrentXp}/{XpToNextLevel}");
+        }
+    }
+    
+    // Signal handlers for shared XP system
+    private void OnSharedXpChanged(int currentXp, int xpToNext, int level)
+    {
+        CurrentXp = currentXp;
+        XpToNextLevel = xpToNext;
+        CurrentLevel = level;
+        
+        GD.Print($"Shared XP updated: Level {level}, XP {currentXp}/{xpToNext}");
+        // TODO: Update UI elements here if needed
+    }
+    
+    private void OnSharedLevelUp(int newLevel)
+    {
+        GD.Print($"Shared level up! New level: {newLevel}");
+        // TODO: Trigger level up effects, sounds, etc.
     }
     public override void _Process(double delta)
     {
@@ -311,13 +369,21 @@ public partial class PlayerController : CharacterBody3D
 
     public void GainXp(int amount)
     {
+        // Only the multiplayer authority should process XP gains to avoid duplicates
+        if (!IsMultiplayerAuthority()) return;
+        
         int modifiedAmount = Mathf.RoundToInt(amount * XpGainMultiplier);
-        CurrentXp += modifiedAmount;
-        if (CurrentXp >= XpToNextLevel)
+        
+        // Use the shared XP system instead of individual progression
+        if (SharedXPManager.Instance != null)
         {
-            //LevelUp();
+            SharedXPManager.Instance.GainSharedXp(modifiedAmount);
+            GD.Print($"Player gained {modifiedAmount} shared XP (base: {amount}, multiplier: {XpGainMultiplier:F2}x)");
         }
-        //UpdateXpCircle();
+        else
+        {
+            GD.PrintErr("SharedXPManager not available - XP gain ignored");
+        }
     }
     private void _on_pickup_area_area_entered(Area3D area){
 		if (area is XpOrb orb)
