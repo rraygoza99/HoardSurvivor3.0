@@ -264,6 +264,23 @@ public partial class CocoChaser : CharacterBody3D
 		}
 	}
 
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
+	public void RpcTakeDamage(float damage)
+	{
+		// Only the authority should apply health changes; call_local ensures local visual feedback as well
+		TakeDamage(damage);
+		if (Health <= 0)
+		{
+			Rpc(nameof(RpcDie));
+		}
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void RpcDie()
+	{
+		Die();
+	}
+
 	public void Die()
 	{
 		// Return to pool instead of destroying

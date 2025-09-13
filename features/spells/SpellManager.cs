@@ -21,6 +21,11 @@ namespace HoardSurvivor3._0.Features.Spells
             {
                 new FireballSpell(),
             };
+
+            characterSpells["Dave"] = new List<ISpell>
+            {
+                new MagicWaveSpell(),
+            };
         }
 
         public List<ISpell> GetSpellsForCharacter(string characterType)

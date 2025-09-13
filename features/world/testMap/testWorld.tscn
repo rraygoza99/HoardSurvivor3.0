@@ -63,3 +63,6 @@ script = ExtResource("5_74g2j")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_74g2j")
+
+[node name="MagicWaves" type="Node3D" parent="."]
+transform = Transform3D(0.999984, -0.00380845, 0.00410382, 0.00381846, 0.99999, -0.00243547, -0.0040945, 0.0024511, 0.999989, 0, 0, 0)
