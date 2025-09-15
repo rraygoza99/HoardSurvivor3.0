@@ -66,7 +66,12 @@ namespace HoardSurvivor3._0.Features.Spells
             _ownerPeerId = ownerPeerId;
             _isActive = true;
             SetProcess(true);
-
+            
+            if (direction != Vector3.Zero)
+            {
+                LookAt(GlobalPosition + direction);
+                RotateY(Mathf.Pi); // Rotate 180 degrees on the Y axis
+            }
         }
 
         public void Reset()
@@ -150,17 +155,20 @@ namespace HoardSurvivor3._0.Features.Spells
     
             if (body.IsInGroup("enemies"))
             {
-                GD.Print($"Fireball hit an enemy: {body.Name}");
-                // Prefer authoritative RPC if available
-                if (body.HasMethod(nameof(CocoChaser.RpcTakeDamage)))
+                if (body is Node3D node3D && node3D.Visible)
                 {
-                    body.Rpc(nameof(CocoChaser.RpcTakeDamage), _damage);
+                    GD.Print($"Fireball hit an enemy: {body.Name}");
+                    // Prefer authoritative RPC if available
+                    if (body.HasMethod(nameof(CocoChaser.RpcTakeDamage)))
+                    {
+                        body.Rpc(nameof(CocoChaser.RpcTakeDamage), _damage);
+                    }
+                    else
+                    {
+                        body.Call("TakeDamage", _damage);
+                    }
+                    ReturnToPool(); // Return to pool instead of QueueFree()
                 }
-                else
-                {
-                    body.Call("TakeDamage", _damage);
-                }
-                ReturnToPool(); // Return to pool instead of QueueFree()
             }
         }
     }

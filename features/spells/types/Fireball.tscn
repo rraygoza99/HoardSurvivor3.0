@@ -23,6 +23,7 @@ properties/4/spawn = true
 properties/4/replication_mode = 1
 
 [node name="Fireball" type="Area3D"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("1_v4x0k")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
