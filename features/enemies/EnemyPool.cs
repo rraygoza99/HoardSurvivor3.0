@@ -73,6 +73,7 @@ public partial class EnemyPool : Node
 
         _activeEnemyCount++;
         
+        
         // Make sure the enemy is properly initialized
         chaser.CallDeferred("add_to_group", "enemies");
         
@@ -106,7 +107,6 @@ public partial class EnemyPool : Node
         
         // Reset velocity before calling Reset() to prevent crazy values
         chaser.Velocity = Vector3.Zero;
-        chaser.Reset(); // Reset chaser state
         
         GD.Print($"Enemy disabled and moved to storage location: {chaser.GlobalPosition}");
         

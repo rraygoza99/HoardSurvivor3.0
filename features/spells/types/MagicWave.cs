@@ -27,7 +27,7 @@ namespace HoardSurvivor3._0.Features.Spells
             CritChance = 0.15f;
             CritDamage = 2.0f;
             CurrentCooldown = 0f;
-            WaveSpeed = 10f;
+            WaveSpeed = 3f;
             WaveWidth = 3f;
             Size = 1f;
             ProjectileSpeed = 15f;
