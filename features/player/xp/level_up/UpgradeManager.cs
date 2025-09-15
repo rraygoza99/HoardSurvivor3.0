@@ -30,10 +30,25 @@ public partial class UpgradeManager : Node
 		}
 	}
 	
-	public List<Upgrade> GetUpgradeChoices(float playerLuck){
+	public List<Upgrade> GetUpgradeChoices(float playerLuck, List<string> playerSpells = null){
 		GD.Print("Getting upgrades");
 		var choices = new List<Upgrade>();
 		var availableUpgrades = new List<Upgrade>(_upgradePool); // Fresh copy for each level-up
+
+		// Filter out spell-specific upgrades for spells the player doesn't have
+		if (playerSpells != null)
+		{
+			GD.Print($"Player has {playerSpells.Count} spells: [{string.Join(", ", playerSpells)}]");
+			availableUpgrades = FilterUpgradesByPlayerSpells(availableUpgrades, playerSpells);
+			GD.Print($"After spell filtering: {availableUpgrades.Count} upgrades available");
+			
+			// Safety check: ensure we always have some upgrades available
+			if (availableUpgrades.Count == 0)
+			{
+				GD.PrintErr("No upgrades available after filtering! Falling back to general upgrades only.");
+				availableUpgrades = _upgradePool.Where(u => !IsSpellSpecificStat(u.StatToUpgrade)).ToList();
+			}
+		}
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -66,8 +81,68 @@ public partial class UpgradeManager : Node
 		
 		return choices;
 	}
+
+	private List<Upgrade> FilterUpgradesByPlayerSpells(List<Upgrade> upgrades, List<string> playerSpells)
+	{
+		var filteredUpgrades = new List<Upgrade>();
+
+		foreach (var upgrade in upgrades)
+		{
+			// Check if this is a spell-specific upgrade
+			if (IsSpellSpecificStat(upgrade.StatToUpgrade))
+			{
+				// Only include if player has the corresponding spell
+				if (HasRequiredSpell(upgrade.StatToUpgrade, playerSpells))
+				{
+					filteredUpgrades.Add(upgrade);
+					GD.Print($"✅ Including spell upgrade: {upgrade.Name} (Player has required spell)");
+				}
+				else
+				{
+					GD.Print($"❌ Filtering out spell upgrade: {upgrade.Name} (Player lacks required spell)");
+				}
+			}
+			else
+			{
+				// Always include general upgrades
+				filteredUpgrades.Add(upgrade);
+			}
+		}
+
+		return filteredUpgrades;
+	}
+
+	private bool IsSpellSpecificStat(Stat stat)
+	{
+		return stat == Stat.MagicSphereDamage || 
+		       stat == Stat.ArcaneWaveDamage || 
+		       stat == Stat.MortarDamage;
+	}
+
+	private bool HasRequiredSpell(Stat stat, List<string> playerSpells)
+	{
+		return stat.ToString() switch
+		{
+			"MagicSphereDamage" => playerSpells.Contains("Fireball"),
+			"ArcaneWaveDamage" => playerSpells.Contains("Magic Wave"),
+			"MortarDamage" => playerSpells.Contains("Mortar"),
+			_ => true // For non-spell-specific stats, always allow
+		};
+	}
 	
-	private Upgrade PickOneUpgrade(float playerLuck, List<Upgrade> availableUpgrades){
+	/// <summary>
+	/// Get the required spell name for a given stat upgrade
+	/// </summary>
+	private string GetRequiredSpellForStat(Stat stat)
+	{
+		return stat.ToString() switch
+		{
+			"MagicSphereDamage" => "Fireball",
+			"ArcaneWaveDamage" => "Magic Wave", 
+			"MortarDamage" => "Mortar",
+			_ => null
+		};
+	}	private Upgrade PickOneUpgrade(float playerLuck, List<Upgrade> availableUpgrades){
 		float commonWeight = 70;
 		float rareWeight = 25;
 		float legendaryWeight = 5;

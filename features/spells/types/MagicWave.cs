@@ -1,35 +1,41 @@
 using Godot;
-using System.Linq;
 using HoardSurvivor3._0.Features.Spells.Base;
-
+using System;
+using System.Linq;
 namespace HoardSurvivor3._0.Features.Spells
 {
-    public class FireballSpell : ISpell
+    public partial class MagicWaveSpell : ISpell
     {
-        public string Name => "Fireball";
-        public string Description => "Launches a ball of fire that explodes on impact.";
+        public string Name => "Magic Wave";
+        public string Description => "Emits a wave of magical energy that damages all enemies in its path.";
         public float Damage { get; private set; }
         public float Cooldown { get; private set; }
         public float CritChance { get; private set; }
         public float CritDamage { get; private set; }
-        public float Size { get; private set; }
         public float CurrentCooldown { get; private set; }
-        public float ProjectileSpeed { get; private set; }
+        public float WaveSpeed { get; private set; }
+        public float WaveWidth { get; private set; }
+        public float Size { get; private set; }
 
-        public FireballSpell()
+        public float ProjectileSpeed { get;  private set; }
+
+
+        public MagicWaveSpell()
         {
-            Damage = 25f;
-            Cooldown = 3f;
-            CritChance = 0.1f;
-            CritDamage = 1.5f;
-            Size = 2f;
-            CurrentCooldown = 3f;
-            ProjectileSpeed = 5f;
+            Damage = 30f;
+            Cooldown = 5f;
+            CritChance = 0.15f;
+            CritDamage = 2.0f;
+            CurrentCooldown = 0f;
+            WaveSpeed = 3f;
+            WaveWidth = 3f;
+            Size = 1f;
+            ProjectileSpeed = 15f;
         }
 
         public void Cast()
         {
-            // Implementation for casting fireball
+            // Implementation for casting magic wave
             CurrentCooldown = Cooldown;
         }
 
@@ -46,16 +52,20 @@ namespace HoardSurvivor3._0.Features.Spells
                 if (CurrentCooldown < 0) CurrentCooldown = 0;
             }
         }
-    }
 
-    public partial class Fireball : Area3D
+    }
+    public partial class MagicWave : Area3D
     {
         private Vector3 _direction;
         private float _damage = 25f;
         private float _lifetime = 5f; // To prevent it from flying forever
         private float _speed = 5f; // Default speed
         private bool _isActive = false;
+        private int _enemiesHit = 0;
+        private const int MAX_ENEMIES_HIT = 3;
+        private System.Collections.Generic.HashSet<Node> _hitEnemies = new();
         private int _ownerPeerId = 0;
+        [Export] private float _forwardRotationOffsetDegrees = 0f; // Use 180 if your mesh faces +Z instead of -Z
 
         public void Initialize(float damage, float speed, Vector3 direction, Vector3 startPosition, int ownerPeerId = 0)
         {
@@ -65,8 +75,11 @@ namespace HoardSurvivor3._0.Features.Spells
             GlobalPosition = startPosition;
             _ownerPeerId = ownerPeerId;
             _isActive = true;
+            _enemiesHit = 0;
+            _hitEnemies.Clear();
             SetProcess(true);
-
+            Show(); // Make sure the wave is visible when active
+            AlignToDirection();
         }
 
         public void Reset()
@@ -74,10 +87,11 @@ namespace HoardSurvivor3._0.Features.Spells
             _isActive = false;
             _lifetime = 5f;
             _direction = Vector3.Zero;
+            _enemiesHit = 0;
+            _hitEnemies.Clear();
             _ownerPeerId = 0;
             Hide();
             SetProcess(false);
-            
         }
 
         public override void _Ready()
@@ -96,18 +110,37 @@ namespace HoardSurvivor3._0.Features.Spells
         public override void _Process(double delta)
         {
             if (!_isActive) return;
+            
             Position += _direction * _speed * (float)delta;
             _lifetime -= (float)delta;
-            if (_lifetime <= 0)
+            // Keep visuals aligned with travel direction
+            AlignToDirection();
+            
+            // Return to pool if lifetime expired or hit maximum enemies
+            if (_lifetime <= 0 || _enemiesHit >= MAX_ENEMIES_HIT)
             {
                 ReturnToPool();
+            }
+        }
+
+        private void AlignToDirection()
+        {
+            var dir = _direction;
+            if (dir.Length() < 0.0001f) return;
+            // Lock to horizontal plane to avoid tilting
+            dir.Y = 0;
+            if (dir.Length() < 0.0001f) return;
+            LookAt(GlobalPosition + dir, Vector3.Up);
+            if (Mathf.Abs(_forwardRotationOffsetDegrees) > 0.001f)
+            {
+                RotateY(Mathf.DegToRad(_forwardRotationOffsetDegrees));
             }
         }
 
         private void ReturnToPool()
         {
             _isActive = false;
-            SpellProjectilePool.Instance?.ReturnFireball(this);
+            SpellProjectilePool.Instance?.ReturnMagicWave(this);
         }
 
         private void SetDirectionToNearestEnemy()
@@ -145,13 +178,22 @@ namespace HoardSurvivor3._0.Features.Spells
         private void OnBodyEntered(Node body)
         {
             if (!_isActive) return;
-            // Only the projectile owner applies damage to avoid duplicate hits across peers
+            // Only the projectile owner applies damage to avoid duplicate hits
             if (!IsMultiplayerAuthority()) return;
     
             if (body.IsInGroup("enemies"))
             {
-                GD.Print($"Fireball hit an enemy: {body.Name}");
-                // Prefer authoritative RPC if available
+                // Check if we've already hit this enemy (prevent double-hitting)
+                if (_hitEnemies.Contains(body))
+                {
+                    return;
+                }
+                
+                // Add enemy to hit list and increment counter
+                _hitEnemies.Add(body);
+                _enemiesHit++;
+                
+                GD.Print($"💥 Magic wave hit enemy {_enemiesHit}/{MAX_ENEMIES_HIT}: {body.Name} (Damage: {_damage})");
                 if (body.HasMethod(nameof(CocoChaser.RpcTakeDamage)))
                 {
                     body.Rpc(nameof(CocoChaser.RpcTakeDamage), _damage);
@@ -160,8 +202,11 @@ namespace HoardSurvivor3._0.Features.Spells
                 {
                     body.Call("TakeDamage", _damage);
                 }
-                ReturnToPool(); // Return to pool instead of QueueFree()
+                
+                // Don't return to pool immediately - let it continue to hit more enemies
+                // The _Process method will handle returning to pool when max enemies are hit
             }
         }
     }
 }
+

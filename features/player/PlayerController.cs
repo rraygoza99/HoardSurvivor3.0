@@ -301,7 +301,7 @@ public partial class PlayerController : CharacterBody3D
             GD.Print($"Showing level up screen for level {newLevel}");
             
             // Get upgrade choices (each player gets different random options)
-            var upgradeChoices = _upgradeManager.GetUpgradeChoices(Lucky);
+            var upgradeChoices = _upgradeManager.GetUpgradeChoices(Lucky, GetPlayerSpellNames());
             
             if (upgradeChoices.Count > 0)
             {
@@ -420,6 +420,66 @@ public partial class PlayerController : CharacterBody3D
                 break;
         }
     }
+
+    private float CalculateFinalDamage(float baseDamage, float spellDamageMultiplier = 1.0f)
+    {
+        // Apply general damage and spell-specific damage multipliers
+        float modifiedDamage = baseDamage * GeneralDamage * spellDamageMultiplier;
+        
+        // Check for critical hit
+        bool isCritical = ShouldCriticalHit();
+        if (isCritical)
+        {
+            modifiedDamage *= CriticalDamage;
+            GD.Print($"💥 CRITICAL HIT! Base: {baseDamage:F1} → Final: {modifiedDamage:F1} (x{CriticalDamage:F1})");
+        }
+        
+        return modifiedDamage;
+    }
+    
+    private bool ShouldCriticalHit()
+    {
+        // Generate random number between 0-100 and check against critical chance
+        var random = new RandomNumberGenerator();
+        random.Randomize();
+        float roll = random.RandfRange(0f, 100f);
+        bool isCrit = roll < CriticalChance;
+        
+        if (isCrit)
+        {
+            GD.Print($"🎯 Critical hit rolled! ({roll:F1} < {CriticalChance:F1}%)");
+        }
+        
+        return isCrit;
+    }
+
+    // Method to get current player stats for UI/debugging
+    public string GetStatsDisplay()
+    {
+        return $"Health: {currentHealth:F0}/{MaxHealth:F0} | " +
+               $"Speed: {moveSpeed:F1} | " +
+               $"Crit: {CriticalChance:F1}%/{CriticalDamage:F1}x | " +
+               $"Damage: {GeneralDamage:F1}x | " +
+               $"XP: {XpGainMultiplier:F1}x | " +
+               $"Lucky: {Lucky:F0}";
+    }
+
+    private List<string> GetPlayerSpellNames()
+    {
+        var spellNames = new List<string>();
+        
+        if (_spells != null)
+        {
+            foreach (var spell in _spells)
+            {
+                spellNames.Add(spell.Name);
+            }
+        }
+        
+        GD.Print($"Player has spells: [{string.Join(", ", spellNames)}]");
+        return spellNames;
+    }
+
     public override void _Process(double delta)
     {
         _playerInputs.Handler();
@@ -540,6 +600,19 @@ public partial class PlayerController : CharacterBody3D
                 {
                     CastFireball(spell);
                 }
+                else if (spell.Name == "Magic Wave")
+                {
+                    CastMagicWave(spell);
+                }
+                // TODO: Add other spell types when implemented
+                // else if (spell.Name == "ArcaneWave")
+                // {
+                //     CastArcaneWave(spell);
+                // }
+                // else if (spell.Name == "Mortar")
+                // {
+                //     CastMortar(spell);
+                // }
             }
         }
     }
@@ -558,10 +631,55 @@ public partial class PlayerController : CharacterBody3D
         var direction = (targetPosition - spawnPosition).Normalized();
 
         fireballSpell.Cast();
-        var fireballDamage = fireballSpell.Damage + (fireballSpell.Damage * GeneralDamage) + (fireballSpell.Damage * MagicSphereDamage);
+        var fireballDamage = CalculateFinalDamage(fireballSpell.Damage, MagicSphereDamage);
         _pendingSpells.Enqueue(new SpellCastData("Fireball", spawnPosition, direction, fireballDamage, fireballSpell.ProjectileSpeed));
 
     }
+
+    private void CastMagicWave(ISpell spell)
+    {
+        var magicWaveSpell = _spells.FirstOrDefault(s => s.Name == "Magic Wave") as HoardSurvivor3._0.Features.Spells.MagicWaveSpell;
+        if (magicWaveSpell == null || !magicWaveSpell.CanCast()) return;
+
+        var nearestEnemy = FindNearestEnemy(50f);
+        if (nearestEnemy == null) return;
+
+        var spawnPosition = GlobalPosition;
+        var targetPosition = nearestEnemy.GlobalPosition;
+        targetPosition.Y = spawnPosition.Y; // Keep same Y level
+        var direction = (targetPosition - spawnPosition).Normalized();
+
+        magicWaveSpell.Cast();
+        var magicWaveDamage = CalculateFinalDamage(magicWaveSpell.Damage, ArcaneWaveDamage);
+        _pendingSpells.Enqueue(new SpellCastData("Magic Wave", spawnPosition, direction, magicWaveDamage, magicWaveSpell.ProjectileSpeed));
+    }
+
+    // Example methods for future spell implementations
+    // These would use the critical hit system when implemented
+    
+    /*
+    private void CastArcaneWave(ISpell spell)
+    {
+        var arcaneWaveSpell = _spells.FirstOrDefault(s => s.Name == "ArcaneWave") as ArcaneWaveSpell;
+        if (arcaneWaveSpell == null || !arcaneWaveSpell.CanCast()) return;
+
+        // Arcane Wave logic here...
+        arcaneWaveSpell.Cast();
+        var arcaneWaveDamage = CalculateFinalDamage(arcaneWaveSpell.Damage, ArcaneWaveDamage);
+        // Use arcaneWaveDamage for the spell
+    }
+
+    private void CastMortar(ISpell spell)
+    {
+        var mortarSpell = _spells.FirstOrDefault(s => s.Name == "Mortar") as MortarSpell;
+        if (mortarSpell == null || !mortarSpell.CanCast()) return;
+
+        // Mortar logic here...
+        mortarSpell.Cast();
+        var mortarDamage = CalculateFinalDamage(mortarSpell.Damage, MortarDamage);
+        // Use mortarDamage for the spell
+    }
+    */
     private void SendBatchedSpells()
     {
         if (_pendingSpells.Count == 0) return;
@@ -576,11 +694,13 @@ public partial class PlayerController : CharacterBody3D
         foreach (var spell in spellArray)
         {
             GD.Print($"Sending RPC for spell: {spell.SpellType} at position: {spell.SpawnPosition}");
-            Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed);
+            // Include owner peer id so only the owner's projectile applies damage
+            int ownerPeerId = Multiplayer.GetUniqueId();
+            Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed, ownerPeerId);
         }
     }
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed)
+    private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed, int ownerPeerId)
     {
         GD.Print($"SpawnSingleSpellRpc called: {spellType} from peer {Multiplayer.GetRemoteSenderId()}");
         if (spellType == "Fireball")
@@ -592,9 +712,23 @@ public partial class PlayerController : CharacterBody3D
                 GetTree().CurrentScene.AddChild(fireball);
             }
             fireball.GlobalPosition = spawnPosition;
-            fireball.Initialize(damage, speed, direction, spawnPosition);
+            fireball.SetMultiplayerAuthority(ownerPeerId); // ensure consistent authority
+            fireball.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
             fireball.Show();
-
+        }
+        else if (spellType == "Magic Wave")
+        {
+            var magicWave = SpellProjectilePool.Instance?.GetMagicWave();
+            if (magicWave == null)
+            {
+                // Create a new one if pool is empty (shouldn't happen often)
+                var magicWaveScene = GD.Load<PackedScene>("res://features/spells/types/MagicWave.tscn");
+                magicWave = magicWaveScene.Instantiate<HoardSurvivor3._0.Features.Spells.MagicWave>();
+                GetTree().CurrentScene.AddChild(magicWave);
+            }
+            magicWave.GlobalPosition = spawnPosition;
+            magicWave.SetMultiplayerAuthority(ownerPeerId);
+            magicWave.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
         }
         // Add other spell types here as you implement them
     }
@@ -645,10 +779,10 @@ public partial class PlayerController : CharacterBody3D
 	}
 	private void _on_collection_area_area_entered(Area3D area)
 	{
-		if(area is XpOrb orb){
-			GainXp(orb.XpAmount);
-			orb.QueueFree();
-		}
+        if(area is XpOrb orb){
+            // Request authoritative pickup to avoid duplicate XP and ensure networked despawn
+            orb.RequestCollect(Multiplayer.GetUniqueId());
+        }
 	}
 
 }

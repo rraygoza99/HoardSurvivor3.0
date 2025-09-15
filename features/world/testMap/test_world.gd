@@ -6,5 +6,7 @@ class_name TestWorld
 
 @onready var enemies: Node = $Enemies
 @onready var fireballs: Node = $Fireballs
+@onready var magicWaves: Node = $MagicWaves
+@onready var xpOrbs: Node = $XPOrbs
 
 
