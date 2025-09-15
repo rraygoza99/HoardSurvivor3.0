@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://dbefrtiwqngk5"]
+[gd_scene load_steps=6 format=3 uid="uid://dbefrtiwqngk5"]
 
 [ext_resource type="Script" uid="uid://b1qcbo8nfoly6" path="res://features/player/xp/XpOrb.cs" id="1_u4m3h"]
 
@@ -13,6 +13,17 @@ emission_energy_multiplier = 16.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_4o45f"]
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_l78s4"]
+properties/0/path = NodePath(".:visible")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
 [node name="XpOrb" type="Area3D" groups=["xp_orbs"]]
 script = ExtResource("1_u4m3h")
 
@@ -24,3 +35,6 @@ shape = SubResource("SphereShape3D_at6hp")
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_u4m3h")
 mesh = SubResource("SphereMesh_4o45f")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_l78s4")

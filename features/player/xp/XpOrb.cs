@@ -10,6 +10,7 @@ public partial class XpOrb : Area3D
 	[Export] private float _repelSpeed = 10.0f;
 
 	private Node3D _targetPlayer;
+    private bool _collected = false;
 
 	private enum State { Idle, Repelling, Seeking }
 	private State _currentState = State.Idle;
@@ -72,5 +73,32 @@ public partial class XpOrb : Area3D
 		_targetPlayer = player;
 		_currentState = State.Repelling;
 		_easeTimer = 0f;
+	}
+
+	// Called by a player when they want to collect the orb.
+	public void RequestCollect(long playerId)
+	{
+		if (_collected) return;
+		Rpc(nameof(RpcCollect), playerId);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true)]
+	private void RpcCollect(long playerId)
+	{
+		if (_collected) return;
+		_collected = true;
+		// Grant shared XP via manager (authoritative)
+		if (SharedXPManager.Instance != null)
+		{
+			SharedXPManager.Instance.GainSharedXp(XpAmount);
+		}
+		// Despawn this orb on all peers
+		Rpc(nameof(RpcDespawn));
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void RpcDespawn()
+	{
+		QueueFree();
 	}
 }

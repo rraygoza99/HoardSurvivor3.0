@@ -249,10 +249,26 @@ public partial class CocoChaser : CharacterBody3D
 				return;
 			}
 		}
-		XpOrb newOrb = _xpOrbScene.Instantiate<XpOrb>();
-		newOrb.SetInitialValue(_xpAmount);
-		GetParent().AddChild(newOrb); // Add to the main scene
-		newOrb.GlobalPosition = this.GlobalPosition;
+		// Spawn orb across the network with a deterministic ID
+		SpawnXpOrbNetworked(GlobalPosition, _xpAmount);
+	}
+
+	private void SpawnXpOrbNetworked(Vector3 position, int amount)
+	{
+		// Only authority decides where and when to spawn orbs
+		if (!IsMultiplayerAuthority()) return;
+		string orbId = System.Guid.NewGuid().ToString();
+		Rpc(nameof(RpcSpawnXpOrb), position, amount, orbId);
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void RpcSpawnXpOrb(Vector3 position, int amount, string orbId)
+	{
+		XpOrb orb = _xpOrbScene.Instantiate<XpOrb>();
+		orb.SetInitialValue(amount);
+		orb.Name = $"XpOrb_{orbId}"; // deterministic name so all peers can reference it
+		GetParent().AddChild(orb);
+		orb.GlobalPosition = position;
 	}
 	public void TakeDamage(float damage){
 		Health -= damage;

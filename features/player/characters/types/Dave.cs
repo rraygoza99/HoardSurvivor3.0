@@ -1,5 +1,6 @@
 using System;
 using HoardSurvivor3._0.features.characters.@base;
+using HoardSurvivor3._0.Features.Spells;
 namespace HoardSurvivor3._0.Features.Player.Characters.Types
 {
     public class Dave : Base.Character
@@ -22,7 +23,7 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Types
         protected override void InitializeStartingSpells()
         {
             // Add starting spells for Dave
-            
+            Spells.Add(new MagicWaveSpell());
         }
     }
 }

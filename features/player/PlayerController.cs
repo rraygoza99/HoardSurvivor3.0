@@ -779,10 +779,10 @@ public partial class PlayerController : CharacterBody3D
 	}
 	private void _on_collection_area_area_entered(Area3D area)
 	{
-		if(area is XpOrb orb){
-			GainXp(orb.XpAmount);
-			orb.QueueFree();
-		}
+        if(area is XpOrb orb){
+            // Request authoritative pickup to avoid duplicate XP and ensure networked despawn
+            orb.RequestCollect(Multiplayer.GetUniqueId());
+        }
 	}
 
 }

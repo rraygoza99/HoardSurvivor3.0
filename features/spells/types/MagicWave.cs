@@ -65,6 +65,7 @@ namespace HoardSurvivor3._0.Features.Spells
         private const int MAX_ENEMIES_HIT = 3;
         private System.Collections.Generic.HashSet<Node> _hitEnemies = new();
         private int _ownerPeerId = 0;
+        [Export] private float _forwardRotationOffsetDegrees = 0f; // Use 180 if your mesh faces +Z instead of -Z
 
         public void Initialize(float damage, float speed, Vector3 direction, Vector3 startPosition, int ownerPeerId = 0)
         {
@@ -78,6 +79,7 @@ namespace HoardSurvivor3._0.Features.Spells
             _hitEnemies.Clear();
             SetProcess(true);
             Show(); // Make sure the wave is visible when active
+            AlignToDirection();
         }
 
         public void Reset()
@@ -111,11 +113,27 @@ namespace HoardSurvivor3._0.Features.Spells
             
             Position += _direction * _speed * (float)delta;
             _lifetime -= (float)delta;
+            // Keep visuals aligned with travel direction
+            AlignToDirection();
             
             // Return to pool if lifetime expired or hit maximum enemies
             if (_lifetime <= 0 || _enemiesHit >= MAX_ENEMIES_HIT)
             {
                 ReturnToPool();
+            }
+        }
+
+        private void AlignToDirection()
+        {
+            var dir = _direction;
+            if (dir.Length() < 0.0001f) return;
+            // Lock to horizontal plane to avoid tilting
+            dir.Y = 0;
+            if (dir.Length() < 0.0001f) return;
+            LookAt(GlobalPosition + dir, Vector3.Up);
+            if (Mathf.Abs(_forwardRotationOffsetDegrees) > 0.001f)
+            {
+                RotateY(Mathf.DegToRad(_forwardRotationOffsetDegrees));
             }
         }
 
