@@ -130,6 +130,7 @@ public partial class CocoChaser : CharacterBody3D
 	}
 	
 	public override void _PhysicsProcess(double delta){
+		if(Health <= 0) return; // Prevent any action if dead
 		_lastAttackTime += (float)delta;
 		_playerUpdateTimer += (float)delta;
 		
@@ -220,12 +221,15 @@ public partial class CocoChaser : CharacterBody3D
 		
 		if (distanceToPlayer <= damageRange)
 		{
-			// Try to deal damage to the player
-			if (_player.HasMethod("TakeDamage"))
+			if (Visible)
 			{
-				_player.Call("TakeDamage", Damage);
-				_lastAttackTime = 0.0f; // Reset attack cooldown
-				GD.Print($"Enemy dealt {Damage} damage to player");
+				// Try to deal damage to the player
+				if (_player.HasMethod("TakeDamage"))
+				{
+					_player.Call("TakeDamage", Damage);
+					_lastAttackTime = 0.0f; // Reset attack cooldown
+					GD.Print($"Enemy dealt {Damage} damage to player");
+				}
 			}
 		}
 	}
@@ -308,6 +312,11 @@ public partial class CocoChaser : CharacterBody3D
 		{
 			QueueFree();
 		}
+	}
+
+	public void ClearTarget()
+	{
+		_player = null;
 	}
 
 	public void Reset()

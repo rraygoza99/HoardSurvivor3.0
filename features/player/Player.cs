@@ -7,6 +7,7 @@ public partial class Player : CharacterBody3D
 	[Export] private MultiplayerSynchronizer _synchronizer;
 	[Export]private float _speed = 5.0f;
 	[Export]private PlayerCamera _camera;
+	[Export] private PlayerUI _playerUI;
 
 	[Export] private int _multiplayerAuthority;
 
@@ -42,6 +43,9 @@ public partial class Player : CharacterBody3D
 
 	// Current health
 	public float CurrentHealth { get; private set; }
+	
+	[Signal] public delegate void HealthChangedEventHandler(float currentHealth, float maxHealth);
+
 
 	public int MultiplayerAuthority
 	{
@@ -85,6 +89,19 @@ public partial class Player : CharacterBody3D
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
+		
+		// Connect to the HealthChanged signal
+		HealthChanged += _playerUI.SetHealth;
+		
+		// Connect to the SharedXPManager signals
+		SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI.SetXP(currentXp, xpToNext);
+		SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI.SetLevel(newLevel);
+		
+		// Set initial UI values
+		_playerUI.SetHealth(CurrentHealth, MaxHealth);
+		var progress = SharedXPManager.Instance.GetSharedXpProgress();
+		_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
+		_playerUI.SetLevel(progress["current_level"].AsInt32());
 	}
 
 	private void InitializeStats()
@@ -107,6 +124,30 @@ public partial class Player : CharacterBody3D
 		_speed = MovementSpeed; // Update the movement speed used in physics
 	}
 
+	public void TakeDamage(float damage)
+	{
+		if (CurrentHealth <= 0) return;
+
+		var actualDamage = damage * (1 - (Armor / (Armor + 100)));
+		CurrentHealth -= actualDamage;
+		CurrentHealth = Mathf.Max(CurrentHealth, 0);
+		
+		EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
+
+		GD.Print($"Player took {actualDamage} damage, health is now {CurrentHealth}");
+
+		if (CurrentHealth <= 0)
+		{
+			Die();
+		}
+	}
+
+	private void Die()
+	{
+		GD.Print("Player has died.");
+		// Handle player death, e.g., respawn, show game over screen, etc.
+	}
+
 	public void ApplyUpgrade(Upgrade upgrade)
 	{
 		if (upgrade == null)
@@ -125,6 +166,7 @@ public partial class Player : CharacterBody3D
 				// Heal the player proportionally when max health increases
 				var healthPercentage = CurrentHealth / oldMaxHealth;
 				CurrentHealth = MaxHealth * healthPercentage;
+				EmitSignal(SignalName.HealthChanged, CurrentHealth, MaxHealth);
 				GD.Print($"Max Health: {oldMaxHealth} -> {MaxHealth}, Current Health: {CurrentHealth}");
 				break;
 

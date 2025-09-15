@@ -20,6 +20,7 @@ public partial class PlayerController : CharacterBody3D
     private PlayerInputs _playerInputs;
     public Vector3 StartPosition { get; set; }
     [Export] private Node3D _playerModel;
+    [Export] private PlayerUI _playerUI;
 
     // Player stats affected by upgrades
     [Export] float MaxHealth { get; set; } = 100.0f;
@@ -55,6 +56,10 @@ public partial class PlayerController : CharacterBody3D
     [Export] float XpGainMultiplier { get; set; } = 1.0f;
     [Export] public int XpToNextLevel { get; private set; } = 100;
     [Export] public int CurrentLevel { get; private set; } = 1;
+
+    [Signal] public delegate void HealthChangedEventHandler(float currentHealth, float maxHealth);
+
+    private bool _isInvulnerable = false;
 
     public int MultiplayerAuthority
     {
@@ -149,6 +154,61 @@ public partial class PlayerController : CharacterBody3D
         
         // Initialize level up system for each player (each gets their own screen and choices)
         SetupLevelUpSystem();
+
+        HealthChanged += _playerUI.SetHealth;
+        
+		// Connect to the SharedXPManager signals
+		SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI.SetXP(currentXp, xpToNext);
+		SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI.SetLevel(newLevel);
+		
+		// Set initial UI values
+		_playerUI.SetHealth(currentHealth, MaxHealth);
+		var progress = SharedXPManager.Instance.GetSharedXpProgress();
+		_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
+		_playerUI.SetLevel(progress["current_level"].AsInt32());
+
+        StartInvulnerability();
+    }
+
+    private void StartInvulnerability()
+    {
+        _isInvulnerable = true;
+        
+        var invulnerabilityTimer = new Timer();
+        invulnerabilityTimer.WaitTime = 3.0f;
+        invulnerabilityTimer.OneShot = true;
+        invulnerabilityTimer.Timeout += OnInvulnerabilityTimerTimeout;
+        AddChild(invulnerabilityTimer);
+        invulnerabilityTimer.Start();
+        
+        var tween = GetTree().CreateTween();
+        tween.TweenMethod(Callable.From<float>(SetModelAlpha), 0.5f, 1.0f, 3.0f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        tween.Play();
+    }
+
+    private void OnInvulnerabilityTimerTimeout()
+    {
+        _isInvulnerable = false;
+        SetModelAlpha(1.0f);
+        GD.Print("Player is no longer invulnerable.");
+    }
+
+    private void SetModelAlpha(float alpha)
+    {
+        var meshInstances = _playerModel.FindChildren("*", "MeshInstance3D", true);
+        foreach (var node in meshInstances)
+        {
+            if (node is MeshInstance3D meshInstance)
+            {
+                var material = meshInstance.GetActiveMaterial(0) as StandardMaterial3D;
+                if (material != null)
+                {
+                    var newColor = material.AlbedoColor;
+                    newColor.A = alpha;
+                    material.AlbedoColor = newColor;
+                }
+            }
+        }
     }
     
     private void TryConnectToSharedXP()
@@ -348,6 +408,7 @@ public partial class PlayerController : CharacterBody3D
                 // Heal the player proportionally when max health increases
                 var healthPercentage = currentHealth / oldMaxHealth;
                 currentHealth = MaxHealth * healthPercentage;
+                EmitSignal(nameof(HealthChanged), currentHealth, MaxHealth);
                 GD.Print($"Max Health: {oldMaxHealth} -> {MaxHealth}, Current Health: {currentHealth}");
                 break;
 
@@ -771,6 +832,31 @@ public partial class PlayerController : CharacterBody3D
             GD.PrintErr("SharedXPManager not available - XP gain ignored");
         }
     }
+
+    public void TakeDamage(float damage)
+	{
+		if (currentHealth <= 0 || _isInvulnerable) return;
+
+		var actualDamage = damage * (1 - (Armor / (Armor + 100)));
+		currentHealth -= actualDamage;
+		currentHealth = Mathf.Max(currentHealth, 0);
+		
+		EmitSignal(nameof(HealthChanged), currentHealth, MaxHealth);
+
+		GD.Print($"Player took {actualDamage} damage, health is now {currentHealth}");
+
+		if (currentHealth <= 0)
+		{
+			Die();
+		}
+	}
+
+	private void Die()
+	{
+		GD.Print("Player has died.");
+		// Handle player death, e.g., respawn, show game over screen, etc.
+	}
+
     private void _on_pickup_area_area_entered(Area3D area){
 		if (area is XpOrb orb)
 		{

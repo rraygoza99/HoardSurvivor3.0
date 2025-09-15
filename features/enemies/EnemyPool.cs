@@ -26,6 +26,7 @@ public partial class EnemyPool : Node
             chaser.SetProcess(false);
             chaser.SetPhysicsProcess(false);
             chaser.Hide();
+            chaser.RemoveFromGroup("enemies");
             chaser.Visible = false;
             _chaserPool.Enqueue(chaser);
             AddChild(chaser);
@@ -67,6 +68,7 @@ public partial class EnemyPool : Node
         {
             // Pool is empty, create new instance
             chaser = _chaserScene.Instantiate<CocoChaser>();
+            chaser.RemoveFromGroup("enemies");
             AddChild(chaser);
             GD.Print("Pool empty, created new chaser instance");
         }
@@ -104,6 +106,7 @@ public partial class EnemyPool : Node
         
         // Move to a far-away location to prevent any interference
         chaser.GlobalPosition = new Vector3(10000, -1000, 10000);
+        chaser.ClearTarget();
         
         // Reset velocity before calling Reset() to prevent crazy values
         chaser.Velocity = Vector3.Zero;
