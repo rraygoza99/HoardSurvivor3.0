@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5w2w2w2w2w2"]
+[gd_scene load_steps=3 format=3 uid="uid://b5w2w2w2w2w2"]
 
 [ext_resource type="Script" uid="uid://cs7xco76jwa3i" path="res://features/ui/PlayerUI.cs" id="1_f5jrk"]
+[ext_resource type="Script" uid="uid://bu7bb1v2pjdes" path="res://features/ui/HealthBarLines.cs" id="2_s7ri3"]
 
 [node name="PlayerUI" type="Control"]
 layout_mode = 3
@@ -11,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_f5jrk")
 
-[node name="HealthBar" type="ProgressBar" parent="."]
+[node name="HealthBar" type="TextureProgressBar" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -22,9 +23,27 @@ offset_right = -320.0
 offset_bottom = 35.0
 grow_horizontal = 2
 value = 50.0
-show_percentage = false
+
+[node name="BackgroundColor" type="ColorRect" parent="HealthBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.6, 0, 0, 1)
+
+[node name="HealthBarLines" type="Control" parent="HealthBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_s7ri3")
 
 [node name="HealthLabel" type="Label" parent="HealthBar"]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

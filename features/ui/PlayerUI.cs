@@ -3,20 +3,24 @@ using System;
 
 public partial class PlayerUI : Control
 {
-    private ProgressBar _healthBar;
+    private TextureProgressBar _healthBar;
     private ProgressBar _xpBar;
     private Label _levelLabel;
+    private Label _healthLabel;
 
     public override void _Ready()
     {
-        _healthBar = GetNode<ProgressBar>("HealthBar");
+        _healthBar = GetNode<TextureProgressBar>("HealthBar");
         _xpBar = GetNode<ProgressBar>("XPBar");
         _levelLabel = GetNode<Label>("LevelLabel");
+        _healthLabel = GetNode<Label>("HealthBar/HealthLabel");
     }
 
     public void SetHealth(float health, float maxHealth)
     {
-        _healthBar.Value = (health / maxHealth) * 100;
+        _healthBar.MaxValue = maxHealth;
+        _healthBar.Value = health;
+        _healthLabel.Text = $"{health}/{maxHealth}";
     }
 
     public void SetXP(float xp, float maxXp)
