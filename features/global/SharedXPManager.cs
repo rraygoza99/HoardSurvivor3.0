@@ -16,6 +16,7 @@ public partial class SharedXPManager : Node
     [Signal] public delegate void SharedLevelUpEventHandler(int newLevel);
     [Signal] public delegate void SharedXpChangedEventHandler(int currentXp, int xpToNext, int level);
     [Signal] public delegate void ShowLevelUpScreenEventHandler(int newLevel); // New signal for level up screen
+    [Signal] public delegate void ShowSpellSelectionScreenEventHandler(int newLevel); // New signal for spell selection
     [Signal] public delegate void AllPlayersSelectedUpgradesEventHandler(); // New signal when all players are ready
     
     public override void _Ready()
@@ -104,7 +105,14 @@ public partial class SharedXPManager : Node
         // Start tracking upgrade selections for all connected players
         StartUpgradeSelectionPhase();
         
-        EmitSignal(SignalName.ShowLevelUpScreen, newLevel); // Trigger level up screen for all players
+        if (newLevel == 5 || newLevel == 15 || newLevel == 30)
+        {
+            EmitSignal(SignalName.ShowSpellSelectionScreen, newLevel);
+        }
+        else
+        {
+            EmitSignal(SignalName.ShowLevelUpScreen, newLevel); // Trigger level up screen for all players
+        }
     }
     
     private void StartUpgradeSelectionPhase()

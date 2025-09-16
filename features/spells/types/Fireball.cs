@@ -1,11 +1,13 @@
 using Godot;
 using System.Linq;
 using HoardSurvivor3._0.Features.Spells.Base;
+using HoardSurvivor3._0.Core.Enums;
 
 namespace HoardSurvivor3._0.Features.Spells
 {
     public class FireballSpell : ISpell
     {
+        public SpellType SpellType => SpellType.Fireball;
         public string Name => "Fireball";
         public string Description => "Launches a ball of fire that explodes on impact.";
         public float Damage { get; private set; }

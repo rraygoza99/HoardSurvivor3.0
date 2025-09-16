@@ -11,7 +11,7 @@ public partial class CocoChaser : CharacterBody3D
 	
 	[ExportGroup("Loot")]
 	[Export] private PackedScene _xpOrbScene;
-	[Export] private int _xpAmount = 10;
+	[Export] private int _xpAmount = 100;
 	[Export] private float _mergeRadius = 1.5f;
 	
 	private Node3D _player;

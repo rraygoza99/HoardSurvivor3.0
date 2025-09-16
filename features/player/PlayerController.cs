@@ -48,6 +48,7 @@ public partial class PlayerController : CharacterBody3D
 	
 	// Level up system components
 	private LevelUpScreen _levelUpScreen;
+	private SpellSelectionScreen _spellSelectionScreen;
 	private UpgradeManager _upgradeManager;
 	public Area3D pickupArea;
 	[ExportGroup("Player Stats")]
@@ -141,6 +142,7 @@ public partial class PlayerController : CharacterBody3D
 			SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
 			SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
 			SharedXPManager.Instance.ShowLevelUpScreen += OnShowLevelUpScreen;
+			SharedXPManager.Instance.ShowSpellSelectionScreen += OnShowSpellSelectionScreen;
 			
 			// Sync current values from shared system
 			SyncWithSharedXP();
@@ -218,6 +220,7 @@ public partial class PlayerController : CharacterBody3D
 			SharedXPManager.Instance.SharedXpChanged += OnSharedXpChanged;
 			SharedXPManager.Instance.SharedLevelUp += OnSharedLevelUp;
 			SharedXPManager.Instance.ShowLevelUpScreen += OnShowLevelUpScreen;
+			SharedXPManager.Instance.ShowSpellSelectionScreen += OnShowSpellSelectionScreen;
 			SyncWithSharedXP();
 			GD.Print("Successfully connected to SharedXPManager");
 		}
@@ -238,6 +241,22 @@ public partial class PlayerController : CharacterBody3D
 		else
 		{
 			GD.PrintErr("Could not load level up screen scene");
+		}
+
+		// Load and instantiate spell selection screen
+		var spellSelectionScreenScene = GD.Load<PackedScene>("res://features/player/xp/level_up/spell_selection/spell_selection_screen.tscn");
+		if (spellSelectionScreenScene != null)
+		{
+			_spellSelectionScreen = spellSelectionScreenScene.Instantiate<SpellSelectionScreen>();
+			GetTree().CurrentScene.AddChild(_spellSelectionScreen);
+			_spellSelectionScreen.Hide(); // Hidden by default
+			_spellSelectionScreen.SpellChosen += OnSpellChosen;
+			_spellSelectionScreen.Set("_spellCardScene", GD.Load<PackedScene>("res://features/player/xp/level_up/spell_selection/spell_card.tscn"));
+			GD.Print("Spell selection screen initialized");
+		}
+		else
+		{
+			GD.PrintErr("Could not load spell selection screen scene");
 		}
 		
 		// Initialize upgrade manager
@@ -378,6 +397,37 @@ public partial class PlayerController : CharacterBody3D
 		}
 	}
 	
+	private void OnShowSpellSelectionScreen(int newLevel)
+	{
+		if (_spellSelectionScreen != null)
+		{
+			GD.Print($"Showing spell selection screen for level {newLevel}");
+			var availableSpells = Core.Factories.SpellFactory.GetAllAvailableSpells();
+			var currentSpellNames = GetPlayerSpellNames();
+			var newSpells = availableSpells.Where(s => !currentSpellNames.Contains(s.Name)).ToList();
+
+			if (character is Wizgod)
+			{
+				newSpells = newSpells.Where(s => s.Name == "Magic Wave").ToList();
+			}
+
+			if (newSpells.Any())
+			{
+				_spellSelectionScreen.DisplaySpells(newSpells);
+			}
+			else
+			{
+				GD.Print("No new spells available for this character.");
+				// If no new spells, show regular upgrade screen
+				OnShowLevelUpScreen(newLevel);
+			}
+		}
+		else
+		{
+			GD.PrintErr("Spell selection screen not initialized");
+		}
+	}
+
 	private void OnUpgradeChosen(Upgrade upgrade)
 	{
 		GD.Print($"Player chose upgrade: {upgrade.Name} (+{upgrade.Value} {upgrade.StatToUpgrade})");
@@ -387,6 +437,24 @@ public partial class PlayerController : CharacterBody3D
 		
 		// TODO: You might want to sync the chosen upgrade to other players for display purposes
 		// or handle upgrade effects that affect shared gameplay
+	}
+
+	private void OnSpellChosen(int spellType)
+	{
+		var spell = Core.Factories.SpellFactory.CreateSpell((HoardSurvivor3._0.Core.Enums.SpellType)spellType);
+		AddSpell(spell);
+	}
+
+	private void AddSpell(ISpell spell)
+	{
+		if (spell != null && !_spells.Any(s => s.Name == spell.Name))
+		{
+			_spells.Add(spell);
+			GD.Print($"Player learned new spell: {spell.Name}");
+			
+			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
+			SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+		}
 	}
 	
 	private void ApplyUpgrade(Upgrade upgrade)

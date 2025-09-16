@@ -1,7 +1,10 @@
+using HoardSurvivor3._0.Core.Enums;
+
 namespace HoardSurvivor3._0.Features.Spells.Base
 {
     public interface ISpell
     {
+        SpellType SpellType { get; }
         string Name { get; }
         string Description { get; }
         float Damage { get; }
