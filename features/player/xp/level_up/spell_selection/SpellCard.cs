@@ -18,10 +18,15 @@ public partial class SpellCard : PanelContainer
         _selectButton = GetNode<Button>("VBoxContainer/SelectButton");
 
         _selectButton.Pressed += OnSelectButtonPressed;
+        
     }
 
     public void SetSpell(ISpell spell)
     {
+        _nameLabel = GetNode<Label>("VBoxContainer/NameLabel");
+        _descriptionLabel = GetNode<Label>("VBoxContainer/DescriptionLabel");
+        _selectButton = GetNode<Button>("VBoxContainer/SelectButton");
+        
         _spell = spell;
         _nameLabel.Text = spell.Name;
         _descriptionLabel.Text = spell.Description;
