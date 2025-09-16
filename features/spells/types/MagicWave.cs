@@ -2,10 +2,12 @@ using Godot;
 using HoardSurvivor3._0.Features.Spells.Base;
 using System;
 using System.Linq;
+using HoardSurvivor3._0.Core.Enums;
 namespace HoardSurvivor3._0.Features.Spells
 {
     public partial class MagicWaveSpell : ISpell
     {
+        public SpellType SpellType => SpellType.MagicWave;
         public string Name => "Magic Wave";
         public string Description => "Emits a wave of magical energy that damages all enemies in its path.";
         public float Damage { get; private set; }

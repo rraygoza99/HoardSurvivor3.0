@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://cglc1m1cy6pqx"]
+[gd_scene load_steps=15 format=3 uid="uid://cglc1m1cy6pqx"]
 
 [ext_resource type="Script" uid="uid://bwlo2qoiymwrb" path="res://features/player/PlayerController.cs" id="1_h3c8f"]
 [ext_resource type="PackedScene" uid="uid://wrprlsmewbej" path="res://assets/models/player/dave/Dave.glb" id="3_h3c8f"]
 [ext_resource type="PackedScene" uid="uid://jgtt4rluxfpa" path="res://features/player/player_camera.tscn" id="3_wiyj1"]
+[ext_resource type="PackedScene" uid="uid://b5w2w2w2w2w2" path="res://features/ui/PlayerUI.tscn" id="4_ppife"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1fepk"]
 
@@ -54,11 +55,12 @@ properties/5/replication_mode = 1
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_h3c8f"]
 
-[node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_camera", "_playerModel") groups=["player"]]
+[node name="Dave" type="CharacterBody3D" node_paths=PackedStringArray("_camera", "_playerModel", "_playerUI") groups=["player"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.911887, 0)
 script = ExtResource("1_h3c8f")
 _camera = NodePath("PlayerCamera")
 _playerModel = NodePath("Dave")
+_playerUI = NodePath("PlayerUI")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_1fepk")
@@ -80,8 +82,8 @@ replication_config = SubResource("SceneReplicationConfig_1fepk")
 transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 0, -0.827983, 0)
 
 [node name="Skeleton3D" parent="Dave/Armature" index="0"]
-bones/0/position = Vector3(0, 3.32281, 0)
-bones/1/position = Vector3(1.42525, 1.80386, -0.0168961)
+bones/0/position = Vector3(0, 3.17059, 0)
+bones/1/position = Vector3(1.42525, 1.62642, -0.016896)
 bones/1/rotation = Quaternion(0.698847, 0.107763, -0.698847, 0.107763)
 bones/2/rotation = Quaternion(-2.47025e-15, 4.44089e-15, 1.33227e-15, 1)
 bones/4/rotation = Quaternion(0.695596, 1.12009e-07, 8.16035e-08, 0.718434)
@@ -95,10 +97,10 @@ bones/13/rotation = Quaternion(0.506254, -0.0723184, -0.0795617, 0.855656)
 bones/14/rotation = Quaternion(0.168543, -0.0544207, -0.009284, 0.984147)
 bones/16/rotation = Quaternion(0.447989, -0.0671035, -0.204828, 0.867669)
 bones/17/rotation = Quaternion(0.704009, 0.0707249, -0.012002, 0.706559)
-bones/18/position = Vector3(1.6876e-08, 2.71508, -0.541061)
+bones/18/position = Vector3(2.7056e-09, 2.6298, -0.559868)
 bones/30/rotation = Quaternion(0.707107, 0, -0.707107, 0)
 bones/31/rotation = Quaternion(-1.25607e-15, -5.33851e-08, 0.707107, 0.707107)
-bones/32/position = Vector3(-1.42525, 1.80405, -0.0168961)
+bones/32/position = Vector3(-1.42525, 1.62773, -0.016896)
 bones/32/rotation = Quaternion(0.698847, -0.107763, 0.698847, 0.107763)
 bones/33/rotation = Quaternion(7.45056e-09, -3.55271e-15, 4.10783e-15, 1)
 bones/35/rotation = Quaternion(0.695596, -1.12009e-07, -8.16035e-08, 0.718434)
@@ -125,6 +127,8 @@ shape = SubResource("CylinderShape3D_h3c8f")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CollectionArea"]
 shape = SubResource("SphereShape3D_h3c8f")
+
+[node name="PlayerUI" parent="." instance=ExtResource("4_ppife")]
 
 [connection signal="area_entered" from="PickupArea" to="." method="_on_pickup_area_area_entered"]
 [connection signal="area_entered" from="CollectionArea" to="." method="_on_collection_area_area_entered"]

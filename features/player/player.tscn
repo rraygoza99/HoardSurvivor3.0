@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://cf5ndkucsb2ga"]
+[gd_scene load_steps=9 format=3 uid="uid://cf5ndkucsb2ga"]
 
 [ext_resource type="Script" uid="uid://cccdvex77xvui" path="res://features/player/Player.cs" id="1_xumkq"]
 [ext_resource type="PackedScene" uid="uid://jgtt4rluxfpa" path="res://features/player/player_camera.tscn" id="2_qqsef"]
+[ext_resource type="PackedScene" uid="uid://b5w2w2w2w2w2" path="res://features/ui/PlayerUI.tscn" id="3_u7j2a"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0g2wm"]
 
@@ -22,10 +23,11 @@ properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
 
-[node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("_synchronizer", "_camera")]
+[node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("_synchronizer", "_camera", "_playerUI")]
 script = ExtResource("1_xumkq")
 _synchronizer = NodePath("MultiplayerSynchronizer")
 _camera = NodePath("PlayerCamera")
+_playerUI = NodePath("PlayerUI")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_0g2wm")
@@ -43,3 +45,5 @@ replication_config = SubResource("SceneReplicationConfig_qly03")
 [node name="PlayerCamera" parent="." node_paths=PackedStringArray("_player") instance=ExtResource("2_qqsef")]
 top_level = true
 _player = NodePath("..")
+
+[node name="PlayerUI" parent="." instance=ExtResource("3_u7j2a")]
