@@ -272,7 +272,7 @@ public partial class PlayerController : CharacterBody3D
 			"res://features/player/Upgrades/common_lifesteal.tres",
 			"res://features/player/Upgrades/common_luck.tres",
 			"res://features/player/Upgrades/common_magic_sphere_damage.tres",
-			"res://features/player/Upgrades/common_mortar_damage.tres",
+			//"res://features/player/Upgrades/common_mortar_damage.tres",
 			"res://features/player/Upgrades/common_speed.tres",
 			"res://features/player/Upgrades/common_xp.tres",
 			// Rare upgrades
@@ -286,7 +286,7 @@ public partial class PlayerController : CharacterBody3D
 			"res://features/player/Upgrades/rare_lifesteal.tres",
 			"res://features/player/Upgrades/rare_luck.tres",
 			"res://features/player/Upgrades/rare_magic_sphere_damage.tres",
-			"res://features/player/Upgrades/rare_mortar_damage.tres",
+			//"res://features/player/Upgrades/rare_mortar_damage.tres",
 			"res://features/player/Upgrades/rare_speed.tres",
 			"res://features/player/Upgrades/rare_xp.tres",
 			// Legendary upgrades
@@ -300,7 +300,7 @@ public partial class PlayerController : CharacterBody3D
 			"res://features/player/Upgrades/legendary_lifesteal.tres",
 			"res://features/player/Upgrades/legendary_luck.tres",
 			"res://features/player/Upgrades/legendary_magic_sphere_damage.tres",
-			"res://features/player/Upgrades/legendary_mortar_damage.tres",
+			//"res://features/player/Upgrades/legendary_mortar_damage.tres",
 			"res://features/player/Upgrades/legendary_speed.tres",
 			"res://features/player/Upgrades/legendary_xp.tres"
 		};
@@ -413,12 +413,12 @@ public partial class PlayerController : CharacterBody3D
 				break;
 
 			case Stat.MovementSpeed:
-				moveSpeed += upgrade.Value;
+				moveSpeed *= (1+upgrade.Value)/100;
 				GD.Print($"Movement Speed: {moveSpeed}");
 				break;
 
 			case Stat.XpGain:
-				XpGainMultiplier *= (1.0f + upgrade.Value / 100.0f);
+				XpGainMultiplier += upgrade.Value;
 				GD.Print($"Applied XP gain upgrade: +{upgrade.Value}%. New multiplier: {XpGainMultiplier:F2}x");
 				break;
 
@@ -457,22 +457,22 @@ public partial class PlayerController : CharacterBody3D
 				break;
 
 			case Stat.GeneralDamage:
-				GeneralDamage += upgrade.Value;
+				GeneralDamage *= (1 + upgrade.Value / 100.0f);
 				GD.Print($"General Damage: {GeneralDamage}x");
 				break;
 
 			case Stat.MagicSphereDamage:
-				MagicSphereDamage += upgrade.Value;
+				MagicSphereDamage *= (1 + upgrade.Value / 100.0f);
 				GD.Print($"Magic Sphere Damage: {MagicSphereDamage}x");
 				break;
 
 			case Stat.ArcaneWaveDamage:
-				ArcaneWaveDamage += upgrade.Value;
+				ArcaneWaveDamage *= (1 + upgrade.Value / 100.0f);
 				GD.Print($"Arcane Wave Damage: {ArcaneWaveDamage}x");
 				break;
 
 			case Stat.MortarDamage:
-				MortarDamage += upgrade.Value;
+				MortarDamage *= (1 + upgrade.Value / 100.0f);
 				GD.Print($"Mortar Damage: {MortarDamage}x");
 				break;
 
