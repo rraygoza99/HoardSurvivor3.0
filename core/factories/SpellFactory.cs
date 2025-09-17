@@ -11,7 +11,8 @@ namespace Core.Factories
         private static readonly Dictionary<SpellType, Func<ISpell>> SpellConstructors = new()
         {
             { SpellType.Fireball, () => new FireballSpell() },
-            { SpellType.MagicWave, () => new MagicWaveSpell() }
+            { SpellType.MagicWave, () => new MagicWaveSpell() },
+            { SpellType.Orbitals, () => new OrbitalsSpell() }
         };
 
         public static ISpell CreateSpell(SpellType spellType)

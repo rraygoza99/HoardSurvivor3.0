@@ -41,6 +41,7 @@ public partial class PlayerController : CharacterBody3D
 	private Queue<SpellCastData> _pendingSpells = new();
 	private float _rpcBatchTimer = 0f;
 	private const float RPC_BATCH_INTERVAL = 0.1f;
+	private Orbitals _activeOrbitals;
 
 	private Godot.Vector3 direction = Godot.Vector3.Zero;
 
@@ -733,6 +734,10 @@ public partial class PlayerController : CharacterBody3D
 				{
 					CastMagicWave(spell);
 				}
+				else if (spell.Name == "Orbitals")
+				{
+					CastOrbitals(spell);
+				}
 				// TODO: Add other spell types when implemented
 				// else if (spell.Name == "ArcaneWave")
 				// {
@@ -781,6 +786,21 @@ public partial class PlayerController : CharacterBody3D
 		magicWaveSpell.Cast();
 		var magicWaveDamage = CalculateFinalDamage(magicWaveSpell.Damage, ArcaneWaveDamage);
 		_pendingSpells.Enqueue(new SpellCastData("Magic Wave", spawnPosition, direction, magicWaveDamage, magicWaveSpell.ProjectileSpeed));
+	}
+
+	private void CastOrbitals(ISpell spell)
+	{
+		var orbitalsSpell = _spells.FirstOrDefault(s => s.Name == "Orbitals") as OrbitalsSpell;
+		if (orbitalsSpell == null || !orbitalsSpell.CanCast()) return;
+
+		if (_activeOrbitals != null && IsInstanceValid(_activeOrbitals))
+		{
+			return; // Orbitals already active
+		}
+
+		orbitalsSpell.Cast();
+		var orbitalsDamage = CalculateFinalDamage(orbitalsSpell.Damage);
+		_pendingSpells.Enqueue(new SpellCastData("Orbitals", GlobalPosition, Vector3.Zero, orbitalsDamage, 0));
 	}
 
 	// Example methods for future spell implementations
@@ -858,6 +878,19 @@ public partial class PlayerController : CharacterBody3D
 			magicWave.GlobalPosition = spawnPosition;
 			magicWave.SetMultiplayerAuthority(ownerPeerId);
 			magicWave.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
+		}
+		else if (spellType == "Orbitals")
+		{
+			var orbitals = new Orbitals();
+			_activeOrbitals = orbitals;
+			AddChild(orbitals); // Attach to player
+			orbitals.GlobalPosition = spawnPosition;
+			orbitals.SetMultiplayerAuthority(ownerPeerId);
+			var orbitalsSpell = _spells.FirstOrDefault(s => s.Name == "Orbitals") as OrbitalsSpell;
+			if (orbitalsSpell != null)
+			{
+				orbitals.Activate(ownerPeerId, orbitalsSpell.OrbitRadius, orbitalsSpell.OrbitSpeed, orbitalsSpell.NumberOfOrbitals, damage);
+			}
 		}
 		// Add other spell types here as you implement them
 	}
