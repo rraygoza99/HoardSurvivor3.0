@@ -44,10 +44,7 @@ public partial class CocoChaser : CharacterBody3D
 		
 		// Setup navigation agent after a frame
 		CallDeferred(nameof(SetupNavigation));
-		
-		GD.Print($"CocoChaser _Ready called. Player found: {_player != null}, NavAgent: {_navAgent != null}");
 	}
-	
 	private void SetupNavigation()
 	{
 		if (_navAgent != null)
@@ -151,7 +148,6 @@ public partial class CocoChaser : CharacterBody3D
 		// Clamp velocity to prevent insane values (same fix as player)
 		if (velocity.Length() > 100.0f)
 		{
-			GD.Print($"WARNING: Enemy velocity too high ({velocity}), resetting to zero");
 			velocity = Vector3.Zero;
 		}
 		
@@ -228,7 +224,6 @@ public partial class CocoChaser : CharacterBody3D
 				{
 					_player.Call("TakeDamage", Damage);
 					_lastAttackTime = 0.0f; // Reset attack cooldown
-					GD.Print($"Enemy dealt {Damage} damage to player");
 				}
 			}
 		}
@@ -276,10 +271,8 @@ public partial class CocoChaser : CharacterBody3D
 	}
 	public void TakeDamage(float damage){
 		Health -= damage;
-		GD.Print($"CocoChaser took {damage} damage. Health: {Health}");
 		if(Health <= 0){
 			DropXpOrb();
-			GD.Print("CocoChaser destroyed");
 			Die();
 		}
 	}
@@ -336,10 +329,7 @@ public partial class CocoChaser : CharacterBody3D
 		Velocity = Vector3.Zero;
 		
 		// Reset navigation
-		if (_navAgent != null)
-		{
-			_navAgent.TargetPosition = Vector3.Zero;
-		}
+		
 		
 		// Find nearest player again
 		_player = FindNearestPlayer();
@@ -359,6 +349,30 @@ public partial class CocoChaser : CharacterBody3D
 		SetCollisionMaskValue(2, false);   // Don't physically interact with players
 		SetCollisionMaskValue(3, true);    // DO collide with other enemies to prevent stacking
 		
-		GD.Print("CocoChaser reset to default state");
+		// Force enemy to snap to the navigation mesh ground
+		CallDeferred(nameof(SnapToNavMesh));
+	}
+
+	private void SnapToNavMesh()
+	{
+		// Raycast down to find the navigation mesh floor
+		var spaceState = GetWorld3D().DirectSpaceState;
+		var query = PhysicsRayQueryParameters3D.Create(
+			GlobalPosition + Vector3.Up, // Start slightly above
+			GlobalPosition + Vector3.Down * 5 // Raycast down 5 units
+		);
+		// Only check for collisions with the navigation mesh layer (assuming it's layer 1)
+		query.CollisionMask = 1; 
+
+		var result = spaceState.IntersectRay(query);
+		if (result.ContainsKey("position"))
+		{
+			var groundPosition = result["position"].AsVector3();
+			GlobalPosition = new Vector3(GlobalPosition.X, groundPosition.Y, GlobalPosition.Z);
+		}
+		else
+		{
+			// Could not find nav mesh, maybe it's better to just place it slightly above origin
+		}
 	}
 }
