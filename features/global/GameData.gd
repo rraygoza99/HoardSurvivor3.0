@@ -55,7 +55,7 @@ var character_data = {
     },
     "dave": {
         "display_name": "Dave",
-        "image_path": "res://features/gui/MageSelection/Images/Dave_portrait.png",
+        "image_path": "res://features/gui/MageSelection/Images/dave_portrait.png",
         "model_path": "res://assets/models/player/dave/dave.glb",
     }
 }

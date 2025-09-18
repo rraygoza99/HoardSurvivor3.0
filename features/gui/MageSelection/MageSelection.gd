@@ -28,7 +28,7 @@ var mage_data_list = [
 		"id": "dave",
 		"name": "Dave",
 		"description": "Controls the battlefield with ice and slowing effects.",
-		"image_path": "res://features/gui/MageSelection/Images/Dave_portrait.png",
+		"image_path": "res://features/gui/MageSelection/Images/dave_portrait.png",
 		"model_path": "res://assets/models/player/dave/dave.glb",
 		"skills": ["Ice Spike", "Frost Nova", "Blizzard"]
 	},

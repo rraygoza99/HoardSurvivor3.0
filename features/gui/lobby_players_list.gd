@@ -20,7 +20,7 @@ var character_textures = {
 	"sam": preload("res://features/gui/MageSelection/Images/Sam_portrait.png"),
 	"carl": preload("res://features/gui/MageSelection/Images/Carl_portrait.png"),
 	"bern": preload("res://features/gui/MageSelection/Images/Bern_portrait.png"),
-	"dave": preload("res://features/gui/MageSelection/Images/Dave_portrait.png"),
+	"dave": preload("res://features/gui/MageSelection/Images/dave_portrait.png"),
 	"defaultwizard": preload("res://features/gui/MageSelection/Images/Wizgod_portrait.png")
 }
 
