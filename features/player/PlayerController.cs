@@ -144,7 +144,7 @@ public partial class PlayerController : CharacterBody3D
 		// Initialize spell casting
 		_spells = character.Spells;
 
-		ActivatePassiveSpells();
+		//ActivatePassiveSpells();
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
@@ -482,7 +482,7 @@ public partial class PlayerController : CharacterBody3D
 		{
 			_spells.Add(spell);
 			GD.Print($"[DEBUG] Player learned new spell: {spell.Name}");
-			ActivatePassiveSpells();
+			//ActivatePassiveSpells();
 			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
 			if (SharedXPManager.Instance != null)
 			{
@@ -680,7 +680,7 @@ public partial class PlayerController : CharacterBody3D
 		}
 
 		CastSpells();
-		ActivatePassiveSpells();
+		//ActivatePassiveSpells();
 		// ADD THIS MISSING BATCH TIMER LOGIC:
 		_rpcBatchTimer += (float)delta;
 		if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
@@ -970,6 +970,22 @@ public partial class PlayerController : CharacterBody3D
 			magicWave.GlobalPosition = spawnPosition;
 			magicWave.SetMultiplayerAuthority(ownerPeerId);
 			magicWave.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
+		} else if(spellType == "Orbitals")
+		{
+			if (_activeOrbitals == null)
+			{
+				var orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
+				_activeOrbitals = orbitalsScene.Instantiate<Orbitals>();
+				GetTree().CurrentScene.AddChild(_activeOrbitals);
+				
+			}
+			_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
+			_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, Multiplayer.GetUniqueId() == ownerPeerId);
+			// Orbitals are handled separately and should not be spawned here
+		}
+		else
+		{
+			GD.PrintErr($"Unknown spell type in SpawnSingleSpellRpc: {spellType}");
 		}
 		// Add other spell types here as you implement them
 	}
