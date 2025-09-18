@@ -1,10 +1,13 @@
-[gd_scene load_steps=10 format=3 uid="uid://deok6m4sw04ca"]
+[gd_scene load_steps=13 format=3 uid="uid://deok6m4sw04ca"]
 
 [ext_resource type="Script" uid="uid://bfvl8kl5igens" path="res://features/world/testMap/test_world.gd" id="1_kx1tt"]
 [ext_resource type="PackedScene" uid="uid://dkppwqp6okv65" path="res://features/world/sky/world_environment.tscn" id="1_pk70n"]
 [ext_resource type="PackedScene" uid="uid://b66mrj8jmqun3" path="res://features/enemies/enemies_spawner.tscn" id="3_8su4o"]
 [ext_resource type="Script" uid="uid://bnfhhy75ftqmt" path="res://Scripts/EnemySpawner/SpawnEnemy.gd" id="4_d6eqb"]
 [ext_resource type="Script" uid="uid://ky0mmp1c13ea" path="res://features/spells/SpellProjectilePool.cs" id="5_74g2j"]
+[ext_resource type="PackedScene" uid="uid://8eruovva0re" path="res://assets/terrain/scenes/tree_2.tscn" id="6_257v2"]
+[ext_resource type="PackedScene" uid="uid://xvkyqqxv0uwh" path="res://assets/terrain/scenes/tree_3.tscn" id="7_ideh8"]
+[ext_resource type="PackedScene" uid="uid://bwnvckrbto5mt" path="res://assets/terrain/models/low poly rocks for itch.glb" id="8_2clsn"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mf2l"]
 albedo_color = Color(0.0056274, 0.485383, 0, 1)
@@ -68,3 +71,85 @@ navigation_mesh = SubResource("NavigationMesh_74g2j")
 transform = Transform3D(0.999984, -0.00380845, 0.00410382, 0.00381846, 0.99999, -0.00243547, -0.0040945, 0.0024511, 0.999989, 0, 0, 0)
 
 [node name="XpOrbs" type="Node3D" parent="."]
+
+[node name="Trees" type="Node3D" parent="."]
+
+[node name="Tree2" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.64168, 0, 0)
+
+[node name="Tree3" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6765, 0, -9.12188)
+
+[node name="Tree4" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.8417, 0, 4.51045)
+
+[node name="Tree10" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.3986, 0, 15.5769)
+
+[node name="Tree5" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.67967, 0, 4.51045)
+
+[node name="Tree6" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.89605, 0, -13.9871)
+
+[node name="Tree7" parent="Trees" instance=ExtResource("6_257v2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.51201, 0, -4.78417)
+
+[node name="Tree8" parent="Trees" instance=ExtResource("7_ideh8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.85181, 0, 6.34863)
+
+[node name="Tree9" parent="Trees" instance=ExtResource("7_ideh8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.11486, 0, 11.0782)
+
+[node name="Tree11" parent="Trees" instance=ExtResource("7_ideh8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.4805, 0, -8.32053)
+
+[node name="Tree12" parent="Trees" instance=ExtResource("7_ideh8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.2282, 0, -16.3507)
+
+[node name="rocks" parent="." instance=ExtResource("8_2clsn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.3454, 1.28638, -0.649525)
+
+[node name="Rock" parent="rocks" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.08229, -0.596313, 0.581421)
+
+[node name="Rock_001" parent="rocks" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.71547, -1.06815, -1.94289)
+
+[node name="Rock_002" parent="rocks" index="2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.68737, -0.954055, 9.15948)
+
+[node name="Rock_003" parent="rocks" index="3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.11206, -1.11086, -11.9245)
+
+[node name="Rock_004" parent="rocks" index="4"]
+visible = false
+
+[node name="Rock_005" parent="rocks" index="5"]
+visible = false
+
+[node name="Rock_006" parent="rocks" index="6"]
+visible = false
+
+[node name="Rock_007" parent="rocks" index="7"]
+visible = false
+
+[node name="Rock_008" parent="rocks" index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.371193, -1.3356, 10.8584)
+
+[node name="Rock_009" parent="rocks" index="9"]
+visible = false
+
+[node name="Rock_010" parent="rocks" index="10"]
+visible = false
+
+[node name="Rock_011" parent="rocks" index="11"]
+visible = false
+
+[node name="Rock_012" parent="rocks" index="12"]
+visible = false
+
+[node name="Rock_013" parent="rocks" index="13"]
+visible = false
+
+[editable path="rocks"]

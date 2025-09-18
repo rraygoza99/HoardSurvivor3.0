@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SteamMultiplayer.features.player;
 using HoardSurvivor3._0.Features.Spells.Data;
+using HoardSurvivor3._0.Features.Spells.Types;
 
 public partial class PlayerController : CharacterBody3D
 {
@@ -37,11 +38,12 @@ public partial class PlayerController : CharacterBody3D
 
 	// Spell casting related fields
 	private PackedScene _fireballScene;
+	private PackedScene _orbitalsScene;
 	private List<ISpell> _spells;
+	private Orbitals _activeOrbitals;
 	private Queue<SpellCastData> _pendingSpells = new();
 	private float _rpcBatchTimer = 0f;
 	private const float RPC_BATCH_INTERVAL = 0.1f;
-	private Orbitals _activeOrbitals;
 
 	private Godot.Vector3 direction = Godot.Vector3.Zero;
 
@@ -70,6 +72,7 @@ public partial class PlayerController : CharacterBody3D
 		{
 			_multiplayerAuthority = value;
 			SetMultiplayerAuthority(value);
+			Name = value.ToString();
 		}
 	}
 
@@ -133,6 +136,9 @@ public partial class PlayerController : CharacterBody3D
 		// Initialize spell casting
 		_spells = character.Spells;
 		_fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+		_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
+
+		ActivatePassiveSpells();
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
@@ -451,10 +457,46 @@ public partial class PlayerController : CharacterBody3D
 		if (spell != null && !_spells.Any(s => s.Name == spell.Name))
 		{
 			_spells.Add(spell);
-			GD.Print($"Player learned new spell: {spell.Name}");
+			GD.Print($"[DEBUG] Player learned new spell: {spell.Name}");
+
+			if (spell is OrbitalsSpell orbitalsSpell)
+			{
+				GD.Print("[DEBUG] New spell is OrbitalsSpell.");
+				if (_activeOrbitals == null)
+				{
+					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene.");
+					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+					AddChild(_activeOrbitals);
+					_activeOrbitals.Initialize(orbitalsSpell);
+					GD.Print("[DEBUG] Orbitals spell activated and initialized.");
+				}
+				else
+				{
+					GD.Print("[DEBUG] _activeOrbitals already exists.");
+				}
+			}
 			
 			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
 			SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+		}
+	}
+	
+	private void ActivatePassiveSpells()
+	{
+		foreach (var spell in _spells)
+		{
+			if (spell is OrbitalsSpell orbitalsSpell)
+			{
+				GD.Print("[DEBUG] Found starting OrbitalsSpell.");
+				if (_activeOrbitals == null)
+				{
+					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene for starting spell.");
+					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+					AddChild(_activeOrbitals);
+					_activeOrbitals.Initialize(orbitalsSpell);
+					GD.Print("[DEBUG] Orbitals spell activated and initialized from start.");
+				}
+			}
 		}
 	}
 	
@@ -482,7 +524,7 @@ public partial class PlayerController : CharacterBody3D
 				break;
 
 			case Stat.MovementSpeed:
-				moveSpeed *= (1+upgrade.Value)/100;
+				moveSpeed *= 1 + (upgrade.Value / 100.0f);
 				GD.Print($"Movement Speed: {moveSpeed}");
 				break;
 
@@ -736,6 +778,7 @@ public partial class PlayerController : CharacterBody3D
 				}
 				else if (spell.Name == "Orbitals")
 				{
+					GD.Print("[DEBUG] Attempting to cast Orbitals.");
 					CastOrbitals(spell);
 				}
 				// TODO: Add other spell types when implemented
@@ -791,16 +834,21 @@ public partial class PlayerController : CharacterBody3D
 	private void CastOrbitals(ISpell spell)
 	{
 		var orbitalsSpell = _spells.FirstOrDefault(s => s.Name == "Orbitals") as OrbitalsSpell;
-		if (orbitalsSpell == null || !orbitalsSpell.CanCast()) return;
-
-		if (_activeOrbitals != null && IsInstanceValid(_activeOrbitals))
+		if (orbitalsSpell == null)
 		{
-			return; // Orbitals already active
+			GD.PrintErr("[DEBUG] CastOrbitals: OrbitalsSpell object not found in player's spell list.");
+			return;
+		}
+		if (!orbitalsSpell.CanCast())
+		{
+			GD.Print($"[DEBUG] CastOrbitals: CanCast() is false. Cooldown: {orbitalsSpell.CurrentCooldown}");
+			return;
 		}
 
+		// Since Orbitals is a passive spell that is always active,
+		// we just need to reset its cooldown.
 		orbitalsSpell.Cast();
-		var orbitalsDamage = CalculateFinalDamage(orbitalsSpell.Damage);
-		_pendingSpells.Enqueue(new SpellCastData("Orbitals", GlobalPosition, Vector3.Zero, orbitalsDamage, 0));
+		GD.Print("[DEBUG] Orbitals spell cooldown reset.");
 	}
 
 	// Example methods for future spell implementations
@@ -878,19 +926,6 @@ public partial class PlayerController : CharacterBody3D
 			magicWave.GlobalPosition = spawnPosition;
 			magicWave.SetMultiplayerAuthority(ownerPeerId);
 			magicWave.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
-		}
-		else if (spellType == "Orbitals")
-		{
-			var orbitals = new Orbitals();
-			_activeOrbitals = orbitals;
-			AddChild(orbitals); // Attach to player
-			orbitals.GlobalPosition = spawnPosition;
-			orbitals.SetMultiplayerAuthority(ownerPeerId);
-			var orbitalsSpell = _spells.FirstOrDefault(s => s.Name == "Orbitals") as OrbitalsSpell;
-			if (orbitalsSpell != null)
-			{
-				orbitals.Activate(ownerPeerId, orbitalsSpell.OrbitRadius, orbitalsSpell.OrbitSpeed, orbitalsSpell.NumberOfOrbitals, damage);
-			}
 		}
 		// Add other spell types here as you implement them
 	}

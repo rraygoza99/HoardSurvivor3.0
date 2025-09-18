@@ -1,3 +1,6 @@
-[gd_scene format=3 uid="uid://df2vxfjxh3lgm"]
+[gd_scene load_steps=2 format=3 uid="uid://df2vxfjxh3lgm"]
+
+[ext_resource type="Script" uid="uid://l4ohp67oxbra" path="res://features/spells/types/Orbitals.cs" id="1_6tpqo"]
 
 [node name="Orbitals" type="Node3D"]
+script = ExtResource("1_6tpqo")
