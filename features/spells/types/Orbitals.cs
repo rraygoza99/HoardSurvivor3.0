@@ -108,6 +108,8 @@ namespace HoardSurvivor3._0.Features.Spells.Types
                 AddChild(orbitalProjectile);
             }
             _initialized = true;
+            // Ensure processing runs on every peer so orbit animation updates locally
+            SetProcess(true);
         }
 
         public override void _Process(double delta)
