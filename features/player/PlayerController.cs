@@ -981,13 +981,13 @@ public partial class PlayerController : CharacterBody3D
 				_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
 				AddChild(_activeOrbitals);
 				var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
-				_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, isAuthorityForDamage);
+				_activeOrbitals.InitializeFromData(damage, 3, speed, 4f, isAuthorityForDamage);
 				GD.Print($"[DEBUG] RpcSpawnOrbitals -> Orbitals instantiated (owner {ownerPeerId}, local {Multiplayer.GetUniqueId()}, authorityDamage={isAuthorityForDamage}).");
 				//GetTree().CurrentScene.AddChild(_activeOrbitals);
 				
 			}
 			_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
-			_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, Multiplayer.GetUniqueId() == ownerPeerId);
+			//_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, Multiplayer.GetUniqueId() == ownerPeerId);
 			// Orbitals are handled separately and should not be spawned here
 		}
 		else
