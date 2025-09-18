@@ -482,25 +482,7 @@ public partial class PlayerController : CharacterBody3D
 		{
 			_spells.Add(spell);
 			GD.Print($"[DEBUG] Player learned new spell: {spell.Name}");
-
-			if (spell is OrbitalsSpell orbitalsSpell)
-			{
-				GD.Print("[DEBUG] New spell is OrbitalsSpell.");
-				if (_activeOrbitals == null)
-				{
-					GD.Print("[DEBUG] _activeOrbitals is null, requesting network spawn.");
-					// Only authority triggers the network-wide spawn to maintain consistency
-					if (IsMultiplayerAuthority())
-					{
-						Rpc(nameof(RpcSpawnOrbitals), orbitalsSpell.Damage, orbitalsSpell.ProjectileAmount, orbitalsSpell.ProjectileSpeed, orbitalsSpell.ProjectileRange, Multiplayer.GetUniqueId());
-					}
-				}
-				else
-				{
-					GD.Print("[DEBUG] _activeOrbitals already exists.");
-				}
-			}
-			
+			ActivatePassiveSpells();
 			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
 			if (SharedXPManager.Instance != null)
 			{
@@ -698,7 +680,7 @@ public partial class PlayerController : CharacterBody3D
 		}
 
 		CastSpells();
-
+		ActivatePassiveSpells();
 		// ADD THIS MISSING BATCH TIMER LOGIC:
 		_rpcBatchTimer += (float)delta;
 		if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
