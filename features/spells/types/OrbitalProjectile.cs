@@ -57,9 +57,14 @@ namespace HoardSurvivor3._0.Features.Spells.Types
             if (body.Visible)
             {
                 GD.Print($"Orbital hit an enemy: {body.Name}");
-                
-                // Apply damage via RPC if available, otherwise call method directly
-                if (body.HasMethod("TakeDamage"))
+
+                // Prefer authoritative network damage path
+                if (body.HasMethod("RpcTakeDamage"))
+                {
+                    // Call the enemy's RpcTakeDamage so the host/authority applies damage and broadcasts death
+                    body.Call("RpcTakeDamage", _damage);
+                }
+                else if (body.HasMethod("TakeDamage"))
                 {
                     body.Call("TakeDamage", _damage);
                 }

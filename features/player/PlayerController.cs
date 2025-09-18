@@ -142,8 +142,8 @@ public partial class PlayerController : CharacterBody3D
 
 		// Initialize spell casting
 		_spells = character.Spells;
-		_fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
-		_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
+		_fireballScene ??= GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+		_orbitalsScene ??= GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 
 		ActivatePassiveSpells();
 
@@ -863,6 +863,10 @@ public partial class PlayerController : CharacterBody3D
 		{
 			GD.Print("[DEBUG] RpcSpawnOrbitals called but orbitals already exist.");
 			return;
+		}
+		if (_orbitalsScene == null)
+		{
+			_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 		}
 		_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
 		AddChild(_activeOrbitals);
