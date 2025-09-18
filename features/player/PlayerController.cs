@@ -464,11 +464,12 @@ public partial class PlayerController : CharacterBody3D
 				GD.Print("[DEBUG] New spell is OrbitalsSpell.");
 				if (_activeOrbitals == null)
 				{
-					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene.");
-					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
-					AddChild(_activeOrbitals);
-					_activeOrbitals.Initialize(orbitalsSpell);
-					GD.Print("[DEBUG] Orbitals spell activated and initialized.");
+					GD.Print("[DEBUG] _activeOrbitals is null, requesting network spawn.");
+					// Only authority triggers the network-wide spawn to maintain consistency
+					if (IsMultiplayerAuthority())
+					{
+						Rpc(nameof(RpcSpawnOrbitals), orbitalsSpell.Damage, orbitalsSpell.ProjectileAmount, orbitalsSpell.ProjectileSpeed, orbitalsSpell.ProjectileRange, Multiplayer.GetUniqueId());
+					}
 				}
 				else
 				{
@@ -488,13 +489,10 @@ public partial class PlayerController : CharacterBody3D
 			if (spell is OrbitalsSpell orbitalsSpell)
 			{
 				GD.Print("[DEBUG] Found starting OrbitalsSpell.");
-				if (_activeOrbitals == null)
+				if (_activeOrbitals == null && IsMultiplayerAuthority())
 				{
-					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene for starting spell.");
-					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
-					AddChild(_activeOrbitals);
-					_activeOrbitals.Initialize(orbitalsSpell);
-					GD.Print("[DEBUG] Orbitals spell activated and initialized from start.");
+					GD.Print("[DEBUG] _activeOrbitals is null at start, spawning via RPC.");
+					Rpc(nameof(RpcSpawnOrbitals), orbitalsSpell.Damage, orbitalsSpell.ProjectileAmount, orbitalsSpell.ProjectileSpeed, orbitalsSpell.ProjectileRange, Multiplayer.GetUniqueId());
 				}
 			}
 		}
@@ -849,6 +847,21 @@ public partial class PlayerController : CharacterBody3D
 		// we just need to reset its cooldown.
 		orbitalsSpell.Cast();
 		GD.Print("[DEBUG] Orbitals spell cooldown reset.");
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void RpcSpawnOrbitals(float damage, int projectileAmount, float projectileSpeed, float projectileRange, int ownerPeerId)
+	{
+		if (_activeOrbitals != null)
+		{
+			GD.Print("[DEBUG] RpcSpawnOrbitals called but orbitals already exist.");
+			return;
+		}
+		_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+		AddChild(_activeOrbitals);
+		var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
+		_activeOrbitals.InitializeFromData(damage, projectileAmount, projectileSpeed, projectileRange, isAuthorityForDamage);
+		GD.Print($"[DEBUG] RpcSpawnOrbitals -> Orbitals instantiated (owner {ownerPeerId}, local {Multiplayer.GetUniqueId()}, authorityDamage={isAuthorityForDamage}).");
 	}
 
 	// Example methods for future spell implementations
