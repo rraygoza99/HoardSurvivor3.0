@@ -46,32 +46,35 @@ namespace HoardSurvivor3._0.Features.Spells.Types
 
         private void OnBodyEntered(Node3D body)
         {
-            // Only the authority should process hits
-            // Don't hit the same enemy if it's on cooldown
+            // Only the (designated) authority instance should process hits.
+            // Also enforce per-enemy hit cooldown.
             if (!_isAuthority || !body.IsInGroup("enemies") || _hitCooldowns.ContainsKey(body))
             {
                 return;
             }
 
-            // The body is already confirmed to be a Node3D, so we just check visibility
-            if (body.Visible)
+            if (!body.Visible)
             {
-                GD.Print($"Orbital hit an enemy: {body.Name}");
-
-                // Prefer authoritative network damage path
-                if (body.HasMethod("RpcTakeDamage"))
-                {
-                    // Call the enemy's RpcTakeDamage so the host/authority applies damage and broadcasts death
-                    body.Call("RpcTakeDamage", _damage);
-                }
-                else if (body.HasMethod("TakeDamage"))
-                {
-                    body.Call("TakeDamage", _damage);
-                }
-
-                // Put the enemy on cooldown
-                _hitCooldowns[body] = HIT_COOLDOWN;
+                return;
             }
+
+            GD.Print($"Orbital hit an enemy: {body.Name}");
+
+            // Fireball uses body.Rpc(nameof(CocoChaser.RpcTakeDamage), damage) so that damage
+            // is always applied on the enemy's authoritative peer (usually the host) and then
+            // replication (death, etc.) flows correctly. Mirror that behavior here instead of
+            // body.Call("RpcTakeDamage") which only executes locally and can desync health.
+            if (body.HasMethod("RpcTakeDamage"))
+            {
+                body.Rpc("RpcTakeDamage", _damage);
+            }
+            else if (body.HasMethod("TakeDamage"))
+            {
+                body.Call("TakeDamage", _damage);
+            }
+
+            // Start individual cooldown to avoid rapid multi-hits.
+            _hitCooldowns[body] = HIT_COOLDOWN;
         }
     }
 }

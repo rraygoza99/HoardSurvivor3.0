@@ -39,7 +39,7 @@ public partial class PlayerController : CharacterBody3D
 	// Spell casting related fields
 	private PackedScene _fireballScene;
 	private PackedScene _orbitalsScene;
-	private List<ISpell> _spells;
+	private List<ISpell> _spells = new(); // ensure non-null for remote peers
 	private Orbitals _activeOrbitals;
 	private Queue<SpellCastData> _pendingSpells = new();
 	private float _rpcBatchTimer = 0f;
@@ -122,10 +122,11 @@ public partial class PlayerController : CharacterBody3D
 				break;
 		}
 
-		SetProcess(isMultiplayerAuthority);
-		SetPhysicsProcess(isMultiplayerAuthority);
+		// Always load spell scenes BEFORE any authority return so RPC instantiation works on all peers
+		_fireballScene ??= GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+		_orbitalsScene ??= GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 
-		// Only show UI for the local authoritative player
+		// Only show UI for local authority, but do not return before loading spells
 		if (_playerUI != null)
 		{
 			_playerUI.Visible = isMultiplayerAuthority;
@@ -133,7 +134,7 @@ public partial class PlayerController : CharacterBody3D
 
 		if (!isMultiplayerAuthority)
 		{
-			// Non-authority players skip further initialization logic that is input/UI dependent
+			// Non-authority still needs spell scenes loaded; skip only input / XP hookup
 			return;
 		}
 		_playerInputs = new PlayerInputs(this);
@@ -142,8 +143,6 @@ public partial class PlayerController : CharacterBody3D
 
 		// Initialize spell casting
 		_spells = character.Spells;
-		_fireballScene ??= GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
-		_orbitalsScene ??= GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 
 		ActivatePassiveSpells();
 
@@ -869,6 +868,8 @@ public partial class PlayerController : CharacterBody3D
 			_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 		}
 		_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+		// Ensure a deterministic authority is set so only one peer applies damage (same peer id used for projectiles)
+		_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
 		AddChild(_activeOrbitals);
 		var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
 		_activeOrbitals.InitializeFromData(damage, projectileAmount, projectileSpeed, projectileRange, isAuthorityForDamage);
