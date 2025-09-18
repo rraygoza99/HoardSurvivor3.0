@@ -172,15 +172,33 @@ public partial class PlayerController : CharacterBody3D
 
 		HealthChanged += _playerUI.SetHealth;
 		
-		// Connect to the SharedXPManager signals
-		SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI.SetXP(currentXp, xpToNext);
-		SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI.SetLevel(newLevel);
-		
-		// Set initial UI values
-		_playerUI.SetHealth(currentHealth, MaxHealth);
-		var progress = SharedXPManager.Instance.GetSharedXpProgress();
-		_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
-		_playerUI.SetLevel(progress["current_level"].AsInt32());
+		// Connect to the SharedXPManager signals (guard against null in race conditions)
+		if (SharedXPManager.Instance != null)
+		{
+			SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) =>
+			{
+				if (_playerUI != null)
+				{
+					_playerUI.SetXP(currentXp, xpToNext);
+				}
+			};
+			SharedXPManager.Instance.SharedLevelUp += (newLevel) =>
+			{
+				_playerUI?.SetLevel(newLevel);
+			};
+			// Set initial UI values
+			if (_playerUI != null)
+			{
+				_playerUI.SetHealth(currentHealth, MaxHealth);
+				var progress = SharedXPManager.Instance.GetSharedXpProgress();
+				_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
+				_playerUI.SetLevel(progress["current_level"].AsInt32());
+			}
+		}
+		else
+		{
+			GD.PrintErr("[PlayerController] SharedXPManager.Instance was null during UI hookup. Will retry later.");
+		}
 
 		StartInvulnerability();
 	}
@@ -484,7 +502,14 @@ public partial class PlayerController : CharacterBody3D
 			}
 			
 			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
-			SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+			if (SharedXPManager.Instance != null)
+			{
+				SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+			}
+			else
+			{
+				GD.PrintErr("[PlayerController] SharedXPManager.Instance null when attempting OnPlayerSelectedUpgrade()");
+			}
 		}
 	}
 	
@@ -658,7 +683,14 @@ public partial class PlayerController : CharacterBody3D
 
 	public override void _Process(double delta)
 	{
-		_playerInputs.Handler();
+		try
+		{
+			_playerInputs.Handler();
+		}
+		catch
+		{
+			
+		}
 
 		foreach (var spell in _spells)
 		{
@@ -677,8 +709,13 @@ public partial class PlayerController : CharacterBody3D
 	}
 	public override void _PhysicsProcess(double delta)
 	{
-		_playerInputs.Handler();
-		UpdateMovement(delta);
+		try
+		{
+			_playerInputs.Handler();
+			UpdateMovement(delta);
+		} catch {
+			
+		}
 	}
 
 	private void UpdateMovement(double delta)
