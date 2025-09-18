@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://ckgb11qnenm1s"]
+
+[ext_resource type="PackedScene" uid="uid://b15r2cfx5dapk" path="res://assets/terrain/models/Tree Type0 01.dae" id="1_jap5l"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jap5l"]
+size = Vector3(2.54303, 1, 2.72937)
+
+[node name="Tree1" type="Node3D"]
+
+[node name="Tree Type0 01" parent="." instance=ExtResource("1_jap5l")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14444, 0, 0.0150757)
+shape = SubResource("BoxShape3D_jap5l")
+
+[editable path="Tree Type0 01"]

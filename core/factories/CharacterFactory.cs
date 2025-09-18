@@ -13,6 +13,8 @@ namespace Core.Factories
             {
                 case CharacterType.Wizgod:
                     return new Wizgod();
+                case CharacterType.Dave:
+                    return new Dave();
                 default:
                     throw new ArgumentException("Invalid character type");
             }

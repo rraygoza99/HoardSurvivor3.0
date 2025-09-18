@@ -2,11 +2,11 @@ using Godot;
 
 public partial class HealthBarLines : Control
 {
-    private TextureProgressBar _healthBar;
+    private ProgressBar _healthBar;
 
     public override void _Ready()
     {
-        _healthBar = GetParent<TextureProgressBar>();
+    _healthBar = GetParent<ProgressBar>();
         // The _Draw method is called automatically, but we need to trigger it
         // whenever the size of the health bar changes.
         if (_healthBar != null)

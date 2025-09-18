@@ -3,6 +3,7 @@ using Godot;
 using HoardSurvivor3._0.features.characters.@base;
 using HoardSurvivor3._0.Features.Spells;
 using HoardSurvivor3._0.Features.Spells.Base;
+using HoardSurvivor3._0.Features.Spells.Types;
 
 namespace HoardSurvivor3._0.Features.Player.Characters.Types
 {
@@ -26,6 +27,7 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Types
         protected override void InitializeStartingSpells()
         {
             Spells.Add(new FireballSpell());
+            //Spells.Add(new OrbitalsSpell());
         }
     }
 }

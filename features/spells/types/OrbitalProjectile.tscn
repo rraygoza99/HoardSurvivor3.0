@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3 uid="uid://bcrkhrjpdg5g4"]
+
+[ext_resource type="Script" uid="uid://droja6xpeyvlg" path="res://features/spells/types/OrbitalProjectile.cs" id="1_vfxs1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c7v1g"]
+albedo_color = Color(0.5, 0.2, 0.8, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_1wkea"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_e7d2h"]
+radius = 0.2
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_dghi6"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:scale")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="OrbitalProjectile" type="Area3D"]
+script = ExtResource("1_vfxs1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_c7v1g")
+mesh = SubResource("SphereMesh_1wkea")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_e7d2h")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_dghi6")
+
+[connection signal="body_entered" from="." to="." method="OnBodyEntered"]
