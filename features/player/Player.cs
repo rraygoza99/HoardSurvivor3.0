@@ -67,6 +67,12 @@ public partial class Player : CharacterBody3D
 		InitializeStats();
 
 		var isMultiplayerAuthority = IsMultiplayerAuthority();
+
+		// Only local authority should display its UI
+		if (_playerUI != null)
+		{
+			_playerUI.Visible = isMultiplayerAuthority;
+		}
 		
 		SetProcess(isMultiplayerAuthority);
 		SetPhysicsProcess(isMultiplayerAuthority);

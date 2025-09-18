@@ -152,4 +152,6 @@ visible = false
 [node name="Rock_013" parent="rocks" index="13"]
 visible = false
 
+[node name="Orbitals" type="Node3D" parent="."]
+
 [editable path="rocks"]

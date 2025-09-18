@@ -125,8 +125,15 @@ public partial class PlayerController : CharacterBody3D
 		SetProcess(isMultiplayerAuthority);
 		SetPhysicsProcess(isMultiplayerAuthority);
 
+		// Only show UI for the local authoritative player
+		if (_playerUI != null)
+		{
+			_playerUI.Visible = isMultiplayerAuthority;
+		}
+
 		if (!isMultiplayerAuthority)
 		{
+			// Non-authority players skip further initialization logic that is input/UI dependent
 			return;
 		}
 		_playerInputs = new PlayerInputs(this);
