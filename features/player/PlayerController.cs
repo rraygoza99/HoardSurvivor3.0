@@ -871,6 +871,8 @@ public partial class PlayerController : CharacterBody3D
 		// Since Orbitals is a passive spell that is always active,
 		// we just need to reset its cooldown.
 		orbitalsSpell.Cast();
+		var orbitalDamage = CalculateFinalDamage(orbitalsSpell.Damage, ArcaneWaveDamage);
+		_pendingSpells.Enqueue(new SpellCastData("Orbitals", GlobalPosition, Vector3.Up, orbitalDamage, orbitalsSpell.ProjectileSpeed));
 		GD.Print("[DEBUG] Orbitals spell cooldown reset.");
 	}
 
@@ -974,9 +976,14 @@ public partial class PlayerController : CharacterBody3D
 		{
 			if (_activeOrbitals == null)
 			{
-				var orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
-				_activeOrbitals = orbitalsScene.Instantiate<Orbitals>();
-				GetTree().CurrentScene.AddChild(_activeOrbitals);
+				_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+				// Ensure a deterministic authority is set so only one peer applies damage (same peer id used for projectiles)
+				_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
+				AddChild(_activeOrbitals);
+				var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
+				_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, isAuthorityForDamage);
+				GD.Print($"[DEBUG] RpcSpawnOrbitals -> Orbitals instantiated (owner {ownerPeerId}, local {Multiplayer.GetUniqueId()}, authorityDamage={isAuthorityForDamage}).");
+				//GetTree().CurrentScene.AddChild(_activeOrbitals);
 				
 			}
 			_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
