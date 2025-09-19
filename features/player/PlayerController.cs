@@ -667,11 +667,11 @@ public partial class PlayerController : CharacterBody3D
 	{
 		try
 		{
-			_playerInputs.Handler();
+			_playerInputs?.Handler();
 		}
-		catch
+		catch (System.Exception ex)
 		{
-			
+			GD.PrintErr($"[PlayerController._Process] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
 		}
 
 		foreach (var spell in _spells)
@@ -693,10 +693,12 @@ public partial class PlayerController : CharacterBody3D
 	{
 		try
 		{
-			_playerInputs.Handler();
+			_playerInputs?.Handler();
 			UpdateMovement(delta);
-		} catch {
-			
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[PlayerController._PhysicsProcess] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
 		}
 	}
 
@@ -716,23 +718,23 @@ public partial class PlayerController : CharacterBody3D
 		}
 
 		// Get the input direction and handle the movement/deceleration.
-		Vector3 direction = _playerInputs.CalculatedDirection;
-		if (_playerInputs.IsMoving)
+		Vector3 direction = _playerInputs != null ? _playerInputs.CalculatedDirection : Vector3.Zero;
+		if (_playerInputs != null && _playerInputs.IsMoving)
 		{
 			velocity.X = direction.X * moveSpeed;
 			velocity.Z = direction.Z * moveSpeed;
 
 			Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection * 3;
-			_playerModel.LookAt(lookTarget);
-			_animationTree.Set("parameters/conditions/Run", true);
-			_animationTree.Set("parameters/conditions/Idle", false);
+			_playerModel?.LookAt(lookTarget);
+			_animationTree?.Set("parameters/conditions/Run", true);
+			_animationTree?.Set("parameters/conditions/Idle", false);
 		}
 		else
 		{
 			velocity.X = Mathf.MoveToward(velocity.X, 0, moveSpeed);
 			velocity.Z = Mathf.MoveToward(velocity.Z, 0, moveSpeed);
-			_animationTree.Set("parameters/conditions/Run", false);
-			_animationTree.Set("parameters/conditions/Idle", true);
+			_animationTree?.Set("parameters/conditions/Run", false);
+			_animationTree?.Set("parameters/conditions/Idle", true);
 		}
 
 		Velocity = velocity;
