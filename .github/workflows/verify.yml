@@ -1,8 +1,10 @@
 name: 'Verify Develop'
 
 on:
+  push:
+    branches: [ "master" ]
   pull_request:
-    branches: [ 'develop' ]
+    branches: [ "master" ]
 
 env:
   GODOT_VERSION: 4.4
