@@ -28,20 +28,22 @@ func start_game():
 	if not multiplayer.is_server():
 		return
 	print("Starting game..")
-	var spawnLocation := 0;
 
 	var packedMap: PackedScene = load("res://features/world/testMap/testWorld.tscn")
 	var mapScene: TestWorld = packedMap.instantiate()
 	world.add_child(mapScene)
 
-	var spawnPositions: Array[Marker3D] = mapScene.spawnLocations;	
+	var spawnPositions: Array[Marker3D] = mapScene.spawnLocations;
 
-	for player in networking.players:
+	# Sort player IDs for consistent spawn assignment
+	var sorted_players := networking.players.keys()
+	sorted_players.sort()
+
+	for i in range(sorted_players.size()):
+		var player = sorted_players[i]
 		if player != multiplayer.get_unique_id():
 			load_world.rpc_id(player)
-			
-		var startPos := spawnPositions[spawnLocation].global_position;
-		spawnLocation += 1
+		var startPos = spawnPositions[i % spawnPositions.size()].global_position
 		load_player.rpc_id(player, player, startPos)
 		teleport_player.rpc_id(player, startPos)
 	pass

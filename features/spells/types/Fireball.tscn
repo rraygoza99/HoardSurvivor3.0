@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://dft4u64ywuhkd"]
+[gd_scene load_steps=7 format=3 uid="uid://dft4u64ywuhkd"]
 
 [ext_resource type="Script" uid="uid://ds8jmv0a55ves" path="res://features/spells/types/Fireball.cs" id="1_v4x0k"]
+[ext_resource type="Shader" uid="uid://bfbvke0v8a8cl" path="res://assets/Shader/Spells/fireball_shader.tres" id="2_e6l1i"]
 [ext_resource type="ArrayMesh" uid="uid://dwfvjf8rpxxdc" path="res://assets/models/Spells/Fireball/fireball_mesh.obj" id="2_twi8h"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_c35h4"]
@@ -22,6 +23,12 @@ properties/4/path = NodePath(".:process_mode")
 properties/4/spawn = true
 properties/4/replication_mode = 1
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ng3l4"]
+render_priority = 1
+shader = ExtResource("2_e6l1i")
+shader_parameter/Fire_Color = Color(1, 0.596078, 0.764706, 1)
+shader_parameter/Speed = Vector2(0, -1)
+
 [node name="Fireball" type="Area3D"]
 transform = Transform3D(-0.69, 0, -1.04187e-07, 0, 0.69, 0, 1.04187e-07, 0, -0.69, 0, 0, 0)
 script = ExtResource("1_v4x0k")
@@ -30,9 +37,9 @@ script = ExtResource("1_v4x0k")
 transform = Transform3D(0.79, 0, 0, 0, 0.79, 0, 0, 0, 0.79, -1.25394e-08, 0, 0.0830449)
 shape = SubResource("SphereShape3D_c35h4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
-mesh = ExtResource("2_twi8h")
-
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_p1d57")
+
+[node name="FireballMesh" type="MeshInstance3D" parent="."]
+material_override = SubResource("ShaderMaterial_ng3l4")
+mesh = ExtResource("2_twi8h")

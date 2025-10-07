@@ -26,8 +26,8 @@ namespace HoardSurvivor3._0.Features.Player.Characters.Types
         }
         protected override void InitializeStartingSpells()
         {
-            //Spells.Add(new FireballSpell());
-            Spells.Add(new OrbitalsSpell());
+            Spells.Add(new FireballSpell());
+            //Spells.Add(new OrbitalsSpell());
         }
     }
 }
