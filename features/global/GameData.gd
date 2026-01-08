@@ -81,18 +81,7 @@ func get_character_display_name(character_id: String) -> String:
         return character_display_names[id]
     return character_id
 
-# Shared XP System Functions
-func gain_shared_xp(amount: int) -> void:
-    shared_current_xp += amount
-    print("Shared XP gained: ", amount, " Total: ", shared_current_xp)
-    
-    # Check for level up
-    while shared_current_xp >= shared_xp_to_next_level:
-        level_up_shared()
-    
-    # Emit signal for UI updates
-    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
-    shared_xp_gained.emit(amount, shared_current_xp)
+
 
 func level_up_shared() -> void:
     shared_current_xp -= shared_xp_to_next_level
@@ -119,3 +108,26 @@ func reset_shared_progression() -> void:
     shared_xp_to_next_level = 100
     shared_current_level = 1
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+
+@rpc("authority", "call_remote")
+func sync_xp_data(current_xp: int, xp_to_next: int, level: int):
+    shared_current_xp = current_xp
+    shared_xp_to_next_level = xp_to_next
+    shared_current_level = level
+    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+    
+# Shared XP System Functions
+func gain_shared_xp(amount: int) -> void:
+    if not multiplayer.is_server():
+        return
+    shared_current_xp += amount
+    print("Shared XP gained: ", amount, " Total: ", shared_current_xp)
+    
+    # Check for level up
+    while shared_current_xp >= shared_xp_to_next_level:
+        level_up_shared()
+    
+    # Emit signal for UI updates
+    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+    shared_xp_gained.emit(amount, shared_current_xp)
+    sync_xp_data.rpc(shared_current_xp, shared_xp_to_next_level, shared_current_level)

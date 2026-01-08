@@ -2,7 +2,7 @@ extends Node
 class_name SteamNetworking
 
 @export var main: Main
-@export var gui: Gui
+@export var gui: Node
 
 var peer := SteamMultiplayerPeer.new();
 
@@ -18,6 +18,7 @@ signal player_list_changed;
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	playerSteamName = Steam.getPersonaName();
 	gui.lobby_host_requested.connect(createSteamLobby)
 	gui.lobby_play_requested.connect(_on_lobby_play_requested);
 	gui.lobby_leave_requested.connect(leaveSteamLobby);
@@ -33,6 +34,9 @@ func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected);
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected);
 	pass # Replace with function body.
+
+func _process(_delta: float) -> void:
+	Steam.run_callbacks()
 
 func createSteamSocketHost():
 	print("Creating host..")
@@ -151,9 +155,11 @@ func _on_character_selected(character_name: String):
 	# If in a lobby, broadcast the character selection to all peers
 	if lobbyId != 0:
 		update_player_character.rpc(character_name)
-		
+
 	# Update the lobby display right away
 	_update_player_list()
+	if multiplayer.is_server() and lobbyId != 0:
+		Steam.setLobbyData(lobbyId, "host_character", character_name)
 	pass
 	
 # Called when character is changed via GameData
@@ -230,5 +236,3 @@ func broadcast_enemy_spawn(position: Vector3, rotation: Vector3):
 	if spawners.size() > 0:
 		print("Found ", spawners.size(), " enemy spawners")
 		spawners[0].spawn_enemy_network(position, rotation)
-	else:
-		print("ERROR: No enemy spawners found in the scene")
