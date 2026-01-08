@@ -59,39 +59,77 @@ namespace HoardSurvivor3._0.Features.Spells.Types
     public partial class Orbitals : Node3D
     {
         private float _angle;
-        private OrbitalsSpell _spell;
+        private OrbitalsSpell _spell; // kept for authority side logic / future upgrades
         private PackedScene _projectileScene;
+
+        // Cached parameter values for non-authority clients (so they don't need OrbitalsSpell instance)
+        private float _damage;
+        private int _projectileAmount;
+        private float _projectileSpeed;
+        private float _projectileRange;
+        private bool _initialized;
 
         public void Initialize(OrbitalsSpell spell)
         {
+            // Store the spell reference (authority side)
             _spell = spell;
-            _projectileScene = GD.Load<PackedScene>("res://features/spells/types/OrbitalProjectile.tscn");
-            
-            // Create the specified number of projectiles
-            for (int i = 0; i < _spell.ProjectileAmount; i++)
+            _damage = spell.Damage;
+            _projectileAmount = spell.ProjectileAmount;
+            _projectileSpeed = spell.ProjectileSpeed;
+            _projectileRange = spell.ProjectileRange;
+            CreateProjectiles();
+        }
+
+        // Used by RPC on remote peers to recreate visuals without needing OrbitalsSpell
+        public void InitializeFromData(float damage, int projectileAmount, float projectileSpeed, float projectileRange, bool isAuthority)
+        {
+            _damage = damage;
+            _projectileAmount = projectileAmount;
+            _projectileSpeed = projectileSpeed;
+            _projectileRange = projectileRange;
+            CreateProjectiles(isAuthority);
+        }
+
+        private void CreateProjectiles(bool isAuthorityOverride = false)
+        {
+            if (_initialized) return;
+            _projectileScene ??= GD.Load<PackedScene>("res://features/spells/types/OrbitalProjectile.tscn");
+            if (_projectileScene == null)
+            {
+                GD.PrintErr("[Orbitals] Failed to load OrbitalProjectile scene.");
+                return;
+            }
+            for (int i = 0; i < _projectileAmount; i++)
             {
                 var orbitalProjectile = _projectileScene.Instantiate<OrbitalProjectile>();
-                orbitalProjectile.Initialize(_spell.Damage, IsMultiplayerAuthority());
+                // Only the authority should process damage logic
+                var isAuth = isAuthorityOverride || IsMultiplayerAuthority();
+                orbitalProjectile.Initialize(_damage, isAuth);
                 AddChild(orbitalProjectile);
             }
+            _initialized = true;
+            // Ensure processing runs on every peer so orbit animation updates locally
+            SetProcess(true);
         }
 
         public override void _Process(double delta)
         {
-            // Don't do anything if the spell data hasn't been set
-            if (_spell == null) return;
+            if (!_initialized) return;
 
-            // Rotate the angle based on the projectile speed
-            _angle += _spell.ProjectileSpeed * (float)delta;
+            // Determine the parameters (authority may have a spell, others rely on cached values)
+            var speed = _spell != null ? _spell.ProjectileSpeed : _projectileSpeed;
+            var amount = _spell != null ? _spell.ProjectileAmount : _projectileAmount;
+            var range = _spell != null ? _spell.ProjectileRange : _projectileRange;
 
-            // Update the position of each orbital projectile
+            _angle += speed * (float)delta;
+
             for (int i = 0; i < GetChildCount(); i++)
             {
                 if (GetChild(i) is Node3D orbital)
                 {
-                    float angleOffset = (Mathf.Tau / _spell.ProjectileAmount) * i;
-                    float x = Mathf.Cos(_angle + angleOffset) * _spell.ProjectileRange;
-                    float z = Mathf.Sin(_angle + angleOffset) * _spell.ProjectileRange;
+                    float angleOffset = (Mathf.Tau / amount) * i;
+                    float x = Mathf.Cos(_angle + angleOffset) * range;
+                    float z = Mathf.Sin(_angle + angleOffset) * range;
                     orbital.Position = new Vector3(x, 0, z);
                 }
             }

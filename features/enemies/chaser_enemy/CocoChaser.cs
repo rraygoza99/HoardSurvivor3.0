@@ -266,6 +266,16 @@ public partial class CocoChaser : CharacterBody3D
 		XpOrb orb = _xpOrbScene.Instantiate<XpOrb>();
 		orb.SetInitialValue(amount);
 		orb.Name = $"XpOrb_{orbId}"; // deterministic name so all peers can reference it
+		// Make orbs server-authoritative so collection always executes on the host
+		// This guarantees SharedXPManager.GainSharedXp runs on the server and then syncs to all clients.
+		try
+		{
+			orb.SetMultiplayerAuthority(1); // Server peer id is always 1 in Godot
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[CocoChaser] Failed to set orb authority: {ex.Message}");
+		}
 		GetParent().AddChild(orb);
 		orb.GlobalPosition = position;
 	}

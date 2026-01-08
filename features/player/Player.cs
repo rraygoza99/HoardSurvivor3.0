@@ -67,6 +67,12 @@ public partial class Player : CharacterBody3D
 		InitializeStats();
 
 		var isMultiplayerAuthority = IsMultiplayerAuthority();
+
+		// Only local authority should display its UI
+		if (_playerUI != null)
+		{
+			_playerUI.Visible = isMultiplayerAuthority;
+		}
 		
 		SetProcess(isMultiplayerAuthority);
 		SetPhysicsProcess(isMultiplayerAuthority);
@@ -91,17 +97,38 @@ public partial class Player : CharacterBody3D
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
 		
 		// Connect to the HealthChanged signal
-		HealthChanged += _playerUI.SetHealth;
+		if (_playerUI != null)
+		{
+			HealthChanged += _playerUI.SetHealth;
+		}
+		else
+		{
+			GD.PrintErr("[Player] _playerUI is null; skipping HealthChanged hookup");
+		}
 		
 		// Connect to the SharedXPManager signals
-		SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI.SetXP(currentXp, xpToNext);
-		SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI.SetLevel(newLevel);
+		if (SharedXPManager.Instance != null)
+		{
+			SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI?.SetXP(currentXp, xpToNext);
+			SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI?.SetLevel(newLevel);
+		}
+		else
+		{
+			GD.PrintErr("[Player] SharedXPManager.Instance is null; skipping XP/Level event hookups");
+		}
 		
 		// Set initial UI values
-		_playerUI.SetHealth(CurrentHealth, MaxHealth);
-		var progress = SharedXPManager.Instance.GetSharedXpProgress();
-		_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
-		_playerUI.SetLevel(progress["current_level"].AsInt32());
+		if (_playerUI != null && SharedXPManager.Instance != null)
+		{
+			_playerUI.SetHealth(CurrentHealth, MaxHealth);
+			var progress = SharedXPManager.Instance.GetSharedXpProgress();
+			_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
+			_playerUI.SetLevel(progress["current_level"].AsInt32());
+		}
+		else
+		{
+			GD.PrintErr("[Player] Skipping initial UI setup due to null _playerUI or SharedXPManager.Instance");
+		}
 	}
 
 	private void InitializeStats()
@@ -243,41 +270,62 @@ public partial class Player : CharacterBody3D
 
 	public override void _Process(double delta)
 	{
-		_playerInputs.Handler();
+		try
+		{
+			_playerInputs?.Handler();
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[Player._Process] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		Vector3 velocity = Velocity;
-		
-		LookAt(GetMousePosition3D());
+		try
+		{
+			Vector3 velocity = Velocity;
+			
+			var lookTarget = GetMousePosition3D();
+			if (lookTarget != Vector3.Zero)
+			{
+				LookAt(lookTarget);
+			}
 
-		// Add the gravity.
-		if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
-		
-		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
-		Vector3 direction = _playerInputs.CalculatedDirection;
-		if (_playerInputs.IsMoving)
-		{
-			velocity.X = direction.X * _speed;
-			velocity.Z = direction.Z * _speed;
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, _speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, _speed);
-		}
+			// Add the gravity.
+			if (!IsOnFloor())
+			{
+				velocity += GetGravity() * (float)delta;
+			}
+			
+			// Get the input direction and handle the movement/deceleration.
+			Vector3 direction = _playerInputs != null ? _playerInputs.CalculatedDirection : Vector3.Zero;
+			if (_playerInputs != null && _playerInputs.IsMoving)
+			{
+				velocity.X = direction.X * _speed;
+				velocity.Z = direction.Z * _speed;
+			}
+			else
+			{
+				velocity.X = Mathf.MoveToward(Velocity.X, 0, _speed);
+				velocity.Z = Mathf.MoveToward(Velocity.Z, 0, _speed);
+			}
 
-		Velocity = velocity;
-		MoveAndSlide();
+			Velocity = velocity;
+			MoveAndSlide();
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[Player._PhysicsProcess] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
+		}
 	}
 	
 	private Vector3 GetMousePosition3D()
 	{
+		if (_camera == null)
+		{
+			return Vector3.Zero;
+		}
 		var targetPlane = new Plane(new(0, 1, 0), GlobalPosition.Y);
 		var mousePosition = GetViewport().GetMousePosition();
 		var camera = _camera;

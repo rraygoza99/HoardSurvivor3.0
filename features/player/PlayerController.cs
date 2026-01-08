@@ -39,7 +39,7 @@ public partial class PlayerController : CharacterBody3D
 	// Spell casting related fields
 	private PackedScene _fireballScene;
 	private PackedScene _orbitalsScene;
-	private List<ISpell> _spells;
+	private List<ISpell> _spells = new(); // ensure non-null for remote peers
 	private Orbitals _activeOrbitals;
 	private Queue<SpellCastData> _pendingSpells = new();
 	private float _rpcBatchTimer = 0f;
@@ -122,11 +122,19 @@ public partial class PlayerController : CharacterBody3D
 				break;
 		}
 
-		SetProcess(isMultiplayerAuthority);
-		SetPhysicsProcess(isMultiplayerAuthority);
+		// Always load spell scenes BEFORE any authority return so RPC instantiation works on all peers
+		_fireballScene ??= GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
+		_orbitalsScene ??= GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
+
+		// Only show UI for local authority, but do not return before loading spells
+		if (_playerUI != null)
+		{
+			_playerUI.Visible = isMultiplayerAuthority;
+		}
 
 		if (!isMultiplayerAuthority)
 		{
+			// Non-authority still needs spell scenes loaded; skip only input / XP hookup
 			return;
 		}
 		_playerInputs = new PlayerInputs(this);
@@ -135,10 +143,8 @@ public partial class PlayerController : CharacterBody3D
 
 		// Initialize spell casting
 		_spells = character.Spells;
-		_fireballScene = GD.Load<PackedScene>("res://features/spells/types/Fireball.tscn");
-		_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
 
-		ActivatePassiveSpells();
+		//ActivatePassiveSpells();
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
@@ -166,15 +172,33 @@ public partial class PlayerController : CharacterBody3D
 
 		HealthChanged += _playerUI.SetHealth;
 		
-		// Connect to the SharedXPManager signals
-		SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) => _playerUI.SetXP(currentXp, xpToNext);
-		SharedXPManager.Instance.SharedLevelUp += (newLevel) => _playerUI.SetLevel(newLevel);
-		
-		// Set initial UI values
-		_playerUI.SetHealth(currentHealth, MaxHealth);
-		var progress = SharedXPManager.Instance.GetSharedXpProgress();
-		_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
-		_playerUI.SetLevel(progress["current_level"].AsInt32());
+		// Connect to the SharedXPManager signals (guard against null in race conditions)
+		if (SharedXPManager.Instance != null)
+		{
+			SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) =>
+			{
+				if (_playerUI != null)
+				{
+					_playerUI.SetXP(currentXp, xpToNext);
+				}
+			};
+			SharedXPManager.Instance.SharedLevelUp += (newLevel) =>
+			{
+				_playerUI?.SetLevel(newLevel);
+			};
+			// Set initial UI values
+			if (_playerUI != null)
+			{
+				_playerUI.SetHealth(currentHealth, MaxHealth);
+				var progress = SharedXPManager.Instance.GetSharedXpProgress();
+				_playerUI.SetXP(progress["current_xp"].AsSingle(), progress["xp_to_next_level"].AsSingle());
+				_playerUI.SetLevel(progress["current_level"].AsInt32());
+			}
+		}
+		else
+		{
+			GD.PrintErr("[PlayerController] SharedXPManager.Instance was null during UI hookup. Will retry later.");
+		}
 
 		StartInvulnerability();
 	}
@@ -458,26 +482,16 @@ public partial class PlayerController : CharacterBody3D
 		{
 			_spells.Add(spell);
 			GD.Print($"[DEBUG] Player learned new spell: {spell.Name}");
-
-			if (spell is OrbitalsSpell orbitalsSpell)
-			{
-				GD.Print("[DEBUG] New spell is OrbitalsSpell.");
-				if (_activeOrbitals == null)
-				{
-					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene.");
-					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
-					AddChild(_activeOrbitals);
-					_activeOrbitals.Initialize(orbitalsSpell);
-					GD.Print("[DEBUG] Orbitals spell activated and initialized.");
-				}
-				else
-				{
-					GD.Print("[DEBUG] _activeOrbitals already exists.");
-				}
-			}
-			
+			//ActivatePassiveSpells();
 			// Since we are not showing a UI, we can immediately say the "upgrade" is done.
-			SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+			if (SharedXPManager.Instance != null)
+			{
+				SharedXPManager.Instance.OnPlayerSelectedUpgrade(Multiplayer.GetUniqueId());
+			}
+			else
+			{
+				GD.PrintErr("[PlayerController] SharedXPManager.Instance null when attempting OnPlayerSelectedUpgrade()");
+			}
 		}
 	}
 	
@@ -488,13 +502,10 @@ public partial class PlayerController : CharacterBody3D
 			if (spell is OrbitalsSpell orbitalsSpell)
 			{
 				GD.Print("[DEBUG] Found starting OrbitalsSpell.");
-				if (_activeOrbitals == null)
+				if (_activeOrbitals == null && IsMultiplayerAuthority())
 				{
-					GD.Print("[DEBUG] _activeOrbitals is null, instantiating scene for starting spell.");
-					_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
-					AddChild(_activeOrbitals);
-					_activeOrbitals.Initialize(orbitalsSpell);
-					GD.Print("[DEBUG] Orbitals spell activated and initialized from start.");
+					GD.Print("[DEBUG] _activeOrbitals is null at start, spawning via RPC.");
+					Rpc(nameof(RpcSpawnOrbitals), orbitalsSpell.Damage, orbitalsSpell.ProjectileAmount, orbitalsSpell.ProjectileSpeed, orbitalsSpell.ProjectileRange, Multiplayer.GetUniqueId());
 				}
 			}
 		}
@@ -654,7 +665,14 @@ public partial class PlayerController : CharacterBody3D
 
 	public override void _Process(double delta)
 	{
-		_playerInputs.Handler();
+		try
+		{
+			_playerInputs?.Handler();
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[PlayerController._Process] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
+		}
 
 		foreach (var spell in _spells)
 		{
@@ -662,7 +680,7 @@ public partial class PlayerController : CharacterBody3D
 		}
 
 		CastSpells();
-
+		//ActivatePassiveSpells();
 		// ADD THIS MISSING BATCH TIMER LOGIC:
 		_rpcBatchTimer += (float)delta;
 		if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
@@ -673,8 +691,15 @@ public partial class PlayerController : CharacterBody3D
 	}
 	public override void _PhysicsProcess(double delta)
 	{
-		_playerInputs.Handler();
-		UpdateMovement(delta);
+		try
+		{
+			_playerInputs?.Handler();
+			UpdateMovement(delta);
+		}
+		catch (System.Exception ex)
+		{
+			GD.PrintErr($"[PlayerController._PhysicsProcess] Exception: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
+		}
 	}
 
 	private void UpdateMovement(double delta)
@@ -693,23 +718,23 @@ public partial class PlayerController : CharacterBody3D
 		}
 
 		// Get the input direction and handle the movement/deceleration.
-		Vector3 direction = _playerInputs.CalculatedDirection;
-		if (_playerInputs.IsMoving)
+		Vector3 direction = _playerInputs != null ? _playerInputs.CalculatedDirection : Vector3.Zero;
+		if (_playerInputs != null && _playerInputs.IsMoving)
 		{
 			velocity.X = direction.X * moveSpeed;
 			velocity.Z = direction.Z * moveSpeed;
 
 			Vector3 lookTarget = GlobalPosition - _playerInputs.CalculatedDirection * 3;
-			_playerModel.LookAt(lookTarget);
-			_animationTree.Set("parameters/conditions/Run", true);
-			_animationTree.Set("parameters/conditions/Idle", false);
+			_playerModel?.LookAt(lookTarget);
+			_animationTree?.Set("parameters/conditions/Run", true);
+			_animationTree?.Set("parameters/conditions/Idle", false);
 		}
 		else
 		{
 			velocity.X = Mathf.MoveToward(velocity.X, 0, moveSpeed);
 			velocity.Z = Mathf.MoveToward(velocity.Z, 0, moveSpeed);
-			_animationTree.Set("parameters/conditions/Run", false);
-			_animationTree.Set("parameters/conditions/Idle", true);
+			_animationTree?.Set("parameters/conditions/Run", false);
+			_animationTree?.Set("parameters/conditions/Idle", true);
 		}
 
 		Velocity = velocity;
@@ -848,7 +873,30 @@ public partial class PlayerController : CharacterBody3D
 		// Since Orbitals is a passive spell that is always active,
 		// we just need to reset its cooldown.
 		orbitalsSpell.Cast();
+		var orbitalDamage = CalculateFinalDamage(orbitalsSpell.Damage, ArcaneWaveDamage);
+		_pendingSpells.Enqueue(new SpellCastData("Orbitals", GlobalPosition, Vector3.Up, orbitalDamage, orbitalsSpell.ProjectileSpeed));
 		GD.Print("[DEBUG] Orbitals spell cooldown reset.");
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void RpcSpawnOrbitals(float damage, int projectileAmount, float projectileSpeed, float projectileRange, int ownerPeerId)
+	{
+		if (_activeOrbitals != null)
+		{
+			GD.Print("[DEBUG] RpcSpawnOrbitals called but orbitals already exist.");
+			return;
+		}
+		if (_orbitalsScene == null)
+		{
+			_orbitalsScene = GD.Load<PackedScene>("res://features/spells/types/Orbitals.tscn");
+		}
+		_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+		// Ensure a deterministic authority is set so only one peer applies damage (same peer id used for projectiles)
+		_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
+		AddChild(_activeOrbitals);
+		var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
+		_activeOrbitals.InitializeFromData(damage, projectileAmount, projectileSpeed, projectileRange, isAuthorityForDamage);
+		GD.Print($"[DEBUG] RpcSpawnOrbitals -> Orbitals instantiated (owner {ownerPeerId}, local {Multiplayer.GetUniqueId()}, authorityDamage={isAuthorityForDamage}).");
 	}
 
 	// Example methods for future spell implementations
@@ -926,6 +974,27 @@ public partial class PlayerController : CharacterBody3D
 			magicWave.GlobalPosition = spawnPosition;
 			magicWave.SetMultiplayerAuthority(ownerPeerId);
 			magicWave.Initialize(damage, speed, direction, spawnPosition, ownerPeerId);
+		} else if(spellType == "Orbitals")
+		{
+			if (_activeOrbitals == null)
+			{
+				_activeOrbitals = _orbitalsScene.Instantiate<Orbitals>();
+				// Ensure a deterministic authority is set so only one peer applies damage (same peer id used for projectiles)
+				_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
+				AddChild(_activeOrbitals);
+				var isAuthorityForDamage = Multiplayer.GetUniqueId() == ownerPeerId; // Only owner processes damage
+				_activeOrbitals.InitializeFromData(damage, 3, speed, 4f, isAuthorityForDamage);
+				GD.Print($"[DEBUG] RpcSpawnOrbitals -> Orbitals instantiated (owner {ownerPeerId}, local {Multiplayer.GetUniqueId()}, authorityDamage={isAuthorityForDamage}).");
+				//GetTree().CurrentScene.AddChild(_activeOrbitals);
+				
+			}
+			_activeOrbitals.SetMultiplayerAuthority(ownerPeerId);
+			//_activeOrbitals.InitializeFromData(damage, 3, speed, 10f, Multiplayer.GetUniqueId() == ownerPeerId);
+			// Orbitals are handled separately and should not be spawned here
+		}
+		else
+		{
+			GD.PrintErr($"Unknown spell type in SpawnSingleSpellRpc: {spellType}");
 		}
 		// Add other spell types here as you implement them
 	}
