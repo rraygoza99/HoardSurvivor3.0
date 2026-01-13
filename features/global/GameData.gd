@@ -129,3 +129,11 @@ func broadcast_level_up(new_level: int):
     if multiplayer.is_server():
         return # Host already emitted this
     shared_level_up.emit(new_level)
+
+func get_shared_xp_progress() -> Dictionary:
+    return {
+        "current_xp": shared_current_xp,
+        "xp_to_next_level": shared_xp_to_next_level,
+        "current_level": shared_current_level,
+        "xp_percentage": float(shared_current_xp) / float(shared_xp_to_next_level) if shared_xp_to_next_level > 0 else 0.0
+    }
