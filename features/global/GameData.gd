@@ -124,7 +124,7 @@ func gain_shared_xp(amount: int) -> void:
     shared_xp_gained.emit(amount, shared_current_xp)
     sync_xp_data.rpc(shared_current_xp, shared_xp_to_next_level, shared_current_level)
 
-@rpc("any_peer", "call_local")
+@rpc("authority", "call_local")
 func broadcast_level_up(new_level: int):
     if multiplayer.is_server():
         return # Host already emitted this

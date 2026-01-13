@@ -254,8 +254,6 @@ public partial class CocoChaser : CharacterBody3D
 
 	private void SpawnXpOrbNetworked(Vector3 position, int amount)
 	{
-		// Only authority decides where and when to spawn orbs
-		//if (!IsMultiplayerAuthority()) return;
 		string orbId = System.Guid.NewGuid().ToString();
 		Rpc(nameof(RpcSpawnXpOrb), position, amount, orbId);
 	}
