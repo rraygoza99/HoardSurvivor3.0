@@ -109,17 +109,22 @@ func reset_shared_progression() -> void:
     shared_current_level = 1
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
 
-@rpc("authority", "call_remote")
+@rpc("any_peer", "call_local")
 func sync_xp_data(current_xp: int, xp_to_next: int, level: int):
+    if multiplayer.is_server():
+        return
+
     shared_current_xp = current_xp
     shared_xp_to_next_level = xp_to_next
     shared_current_level = level
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
-    
+
 # Shared XP System Functions
+@rpc("authority", "call_local")
 func gain_shared_xp(amount: int) -> void:
     if not multiplayer.is_server():
         return
+        
     shared_current_xp += amount
     print("Shared XP gained: ", amount, " Total: ", shared_current_xp)
     
