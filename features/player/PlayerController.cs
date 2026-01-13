@@ -927,11 +927,11 @@ public partial class PlayerController : CharacterBody3D
 			GD.Print($"Sending RPC for spell: {spell.SpellType} at position: {spell.SpawnPosition}");
 			// Include owner peer id so only the owner's projectile applies damage
 			int ownerPeerId = Multiplayer.GetUniqueId();
-			Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed, ownerPeerId);
+			Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed, spell.Size, spell.CritChance, spell.CritDamage, ownerPeerId);
 		}
 	}
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-	private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed, int ownerPeerId)
+	private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed, float size, float critChance, float critDamage, int ownerPeerId)
 	{
 		GD.Print($"SpawnSingleSpellRpc called: {spellType} from peer {Multiplayer.GetRemoteSenderId()}");
 		if (spellType == "Fireball")
