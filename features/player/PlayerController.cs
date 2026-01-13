@@ -160,9 +160,11 @@ public partial class PlayerController : CharacterBody3D
 			// Sync current values from shared system
 			SyncWithSharedXP();
 		}
-		GD.Print("Now trying to setup level up system");
 		// Initialize level up system for each player (each gets their own screen and choices)
-		SetupLevelUpSystem();
+		if (isMultiplayerAuthority)
+		{
+			SetupLevelUpSystem();
+		}
 
 		if (!isMultiplayerAuthority)
 		{

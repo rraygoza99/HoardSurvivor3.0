@@ -105,6 +105,9 @@ namespace HoardSurvivor3._0.Features.Spells
             SetCollisionMaskValue(1, true);    // Detect environment/boundaries
             SetCollisionMaskValue(3, true);    // Detect enemies
             SetCollisionMaskValue(2, false);   // Don't detect players
+
+            var synchronizer = GetNode<MultiplayerSynchronizer>("MultiplayerSynchronizer");
+            synchronizer.RootPath = GetPath();
             
             //SetDirectionToNearestEnemy();
         }
