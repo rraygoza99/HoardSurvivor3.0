@@ -18,21 +18,21 @@ signal player_list_changed;
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	playerSteamName = Steam.getPersonaName();
+	playerSteamName = Steam.getPersonaName()
 	gui.lobby_host_requested.connect(createSteamLobby)
-	gui.lobby_play_requested.connect(_on_lobby_play_requested);
-	gui.lobby_leave_requested.connect(leaveSteamLobby);
+	gui.lobby_play_requested.connect(_on_lobby_play_requested)
+	gui.lobby_leave_requested.connect(leaveSteamLobby)
 	gui.character_selected.connect(_on_character_selected)
 	
 	# Connect to GameData's character_changed signal
 	get_node("/root/GameData").character_changed.connect(_on_character_changed_in_gamedata)
 	
-	Steam.lobby_joined.connect(_on_lobby_joined);
-	Steam.lobby_kicked.connect(_on_lobby_left);
-	Steam.lobby_created.connect(_on_lobby_created);
+	Steam.lobby_joined.connect(_on_lobby_joined)
+	Steam.lobby_kicked.connect(_on_lobby_left)
+	Steam.lobby_created.connect(_on_lobby_created)
 	
-	multiplayer.peer_connected.connect(_on_peer_connected);
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected);
+	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	pass # Replace with function body.
 
 func _process(_delta: float) -> void:

@@ -8,6 +8,7 @@ using System.Linq;
 using SteamMultiplayer.features.player;
 using HoardSurvivor3._0.Features.Spells.Data;
 using HoardSurvivor3._0.Features.Spells.Types;
+using HoardSurvivor3._0.Core;
 
 public partial class PlayerController : CharacterBody3D
 {
@@ -55,11 +56,8 @@ public partial class PlayerController : CharacterBody3D
 	private UpgradeManager _upgradeManager;
 	public Area3D pickupArea;
 	[ExportGroup("Player Stats")]
-	// Individual XP properties are no longer used - keeping for compatibility
-	[Export] public int CurrentXp { get; private set; } = 0;
+	// Individual XP properties are no longer used
 	[Export] float XpGainMultiplier { get; set; } = 1.0f;
-	[Export] public int XpToNextLevel { get; private set; } = 100;
-	[Export] public int CurrentLevel { get; private set; } = 1;
 
 	[Signal] public delegate void HealthChangedEventHandler(float currentHealth, float maxHealth);
 
@@ -135,9 +133,11 @@ public partial class PlayerController : CharacterBody3D
 		if (!isMultiplayerAuthority)
 		{
 			// Non-authority still needs spell scenes loaded; skip only input / XP hookup
-			return;
 		}
-		_playerInputs = new PlayerInputs(this);
+		else
+		{
+			_playerInputs = new PlayerInputs(this);
+		}
 		_animationTree = GetNode<AnimationTree>("AnimationTree");
 		_animationTree.Active = true;
 
@@ -148,7 +148,7 @@ public partial class PlayerController : CharacterBody3D
 
 		var main = GetTree().Root.GetNode<Node>("Main");
 		main.Connect("player_teleport", new Callable(this, MethodName.OnPlayerTeleport));
-		
+		GD.Print("Setuping Shared XP system for player");
 		// Connect to shared XP system
 		if (SharedXPManager.Instance != null)
 		{
@@ -160,32 +160,22 @@ public partial class PlayerController : CharacterBody3D
 			// Sync current values from shared system
 			SyncWithSharedXP();
 		}
-		else
-		{
-			GD.Print("SharedXPManager not yet available, will try later");
-			// Try again after a short delay
-			CallDeferred(nameof(TryConnectToSharedXP));
-		}
-		
 		// Initialize level up system for each player (each gets their own screen and choices)
-		SetupLevelUpSystem();
+		if (isMultiplayerAuthority)
+		{
+			SetupLevelUpSystem();
+		}
+
+		if (!isMultiplayerAuthority)
+		{
+			return;
+		}
 
 		HealthChanged += _playerUI.SetHealth;
 		
 		// Connect to the SharedXPManager signals (guard against null in race conditions)
 		if (SharedXPManager.Instance != null)
 		{
-			SharedXPManager.Instance.SharedXpChanged += (currentXp, xpToNext, level) =>
-			{
-				if (_playerUI != null)
-				{
-					_playerUI.SetXP(currentXp, xpToNext);
-				}
-			};
-			SharedXPManager.Instance.SharedLevelUp += (newLevel) =>
-			{
-				_playerUI?.SetLevel(newLevel);
-			};
 			// Set initial UI values
 			if (_playerUI != null)
 			{
@@ -378,29 +368,27 @@ public partial class PlayerController : CharacterBody3D
 		if (SharedXPManager.Instance != null)
 		{
 			var progress = SharedXPManager.Instance.GetSharedXpProgress();
-			CurrentXp = progress["current_xp"].AsInt32();
-			XpToNextLevel = progress["xp_to_next_level"].AsInt32();
-			CurrentLevel = progress["current_level"].AsInt32();
-			
-			GD.Print($"Synced with shared XP: Level {CurrentLevel}, XP {CurrentXp}/{XpToNextLevel}");
+			GD.Print(progress);
+			OnSharedXpChanged(progress["current_xp"].AsInt32(), progress["xp_to_next_level"].AsInt32(), progress["current_level"].AsInt32());
 		}
 	}
 	
 	// Signal handlers for shared XP system
 	private void OnSharedXpChanged(int currentXp, int xpToNext, int level)
 	{
-		CurrentXp = currentXp;
-		XpToNextLevel = xpToNext;
-		CurrentLevel = level;
-		
-		GD.Print($"Shared XP updated: Level {level}, XP {currentXp}/{xpToNext}");
-		// TODO: Update UI elements here if needed
+		if (_playerUI != null)
+		{
+			_playerUI.SetXP(currentXp, xpToNext);
+			_playerUI.SetLevel(level);
+		}
 	}
 	
 	private void OnSharedLevelUp(int newLevel)
 	{
-		GD.Print($"Shared level up! New level: {newLevel}");
-		// TODO: Trigger level up effects, sounds, etc.
+		if (_playerUI != null)
+		{
+			_playerUI.SetLevel(newLevel);
+		}
 	}
 	
 	private void OnShowLevelUpScreen(int newLevel)
@@ -941,11 +929,11 @@ public partial class PlayerController : CharacterBody3D
 			GD.Print($"Sending RPC for spell: {spell.SpellType} at position: {spell.SpawnPosition}");
 			// Include owner peer id so only the owner's projectile applies damage
 			int ownerPeerId = Multiplayer.GetUniqueId();
-			Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed, ownerPeerId);
+			Rpc(nameof(SpawnSingleSpellRpc), spell.SpellType, spell.SpawnPosition, spell.Direction, spell.Damage, spell.Speed, spell.Size, spell.CritChance, spell.CritDamage, ownerPeerId);
 		}
 	}
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-	private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed, int ownerPeerId)
+	private void SpawnSingleSpellRpc(string spellType, Vector3 spawnPosition, Vector3 direction, float damage, float speed, float size, float critChance, float critDamage, int ownerPeerId)
 	{
 		GD.Print($"SpawnSingleSpellRpc called: {spellType} from peer {Multiplayer.GetRemoteSenderId()}");
 		if (spellType == "Fireball")
@@ -1076,4 +1064,15 @@ public partial class PlayerController : CharacterBody3D
 		}
 	}
 
+	public override void _Input(InputEvent @event)
+    {
+        if (IsMultiplayerAuthority())
+        {
+            if (Input.IsActionJustPressed("L_Key"))
+            {
+                var gameData = GetNode<Node>("/root/GameData");
+                gameData.Rpc("gain_shared_xp", 20);
+            }
+        }
+    }
 }

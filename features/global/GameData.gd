@@ -93,33 +93,25 @@ func level_up_shared() -> void:
     
     # Emit signals
     shared_level_up.emit(shared_current_level)
+    broadcast_level_up.rpc(shared_current_level) # RPC to all clients
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
 
-func get_shared_xp_progress() -> Dictionary:
-    return {
-        "current_xp": shared_current_xp,
-        "xp_to_next_level": shared_xp_to_next_level,
-        "current_level": shared_current_level,
-        "xp_percentage": float(shared_current_xp) / float(shared_xp_to_next_level)
-    }
-
-func reset_shared_progression() -> void:
-    shared_current_xp = 0
-    shared_xp_to_next_level = 100
-    shared_current_level = 1
-    shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
-
-@rpc("authority", "call_remote")
+@rpc("any_peer", "call_local")
 func sync_xp_data(current_xp: int, xp_to_next: int, level: int):
+    if multiplayer.is_server():
+        return
+
     shared_current_xp = current_xp
     shared_xp_to_next_level = xp_to_next
     shared_current_level = level
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
-    
+
 # Shared XP System Functions
+@rpc("authority", "call_local")
 func gain_shared_xp(amount: int) -> void:
     if not multiplayer.is_server():
         return
+        
     shared_current_xp += amount
     print("Shared XP gained: ", amount, " Total: ", shared_current_xp)
     
@@ -131,3 +123,17 @@ func gain_shared_xp(amount: int) -> void:
     shared_xp_changed.emit(shared_current_xp, shared_xp_to_next_level, shared_current_level)
     shared_xp_gained.emit(amount, shared_current_xp)
     sync_xp_data.rpc(shared_current_xp, shared_xp_to_next_level, shared_current_level)
+
+@rpc("authority", "call_local")
+func broadcast_level_up(new_level: int):
+    if multiplayer.is_server():
+        return # Host already emitted this
+    shared_level_up.emit(new_level)
+
+func get_shared_xp_progress() -> Dictionary:
+    return {
+        "current_xp": shared_current_xp,
+        "xp_to_next_level": shared_xp_to_next_level,
+        "current_level": shared_current_level,
+        "xp_percentage": float(shared_current_xp) / float(shared_xp_to_next_level) if shared_xp_to_next_level > 0 else 0.0
+    }
