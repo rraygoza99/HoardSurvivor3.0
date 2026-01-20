@@ -59,10 +59,15 @@ func _ready() -> void:
 			emit_signal("lobby_leave_requested")
 			lobbies.show()
 			waitingRoom.hide()
+			playButton.visible = false
 	)
 	lobbies.show()
 	waitingRoom.hide()
 	pass # Replace with function body.
+
+func set_owner_mode(is_owner: bool) -> void:
+	playButton.visible = is_owner
+	print("UI Updated: Owner Mode = ", is_owner)
 
 func _on_character_selected(character_name: String) -> void:
 	selected_character = character_name
