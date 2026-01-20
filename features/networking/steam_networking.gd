@@ -26,6 +26,9 @@ func _ready() -> void:
 	
 	# Connect to GameData's character_changed signal
 	get_node("/root/GameData").character_changed.connect(_on_character_changed_in_gamedata)
+
+	# Connect to chat update to detect Host Migration
+	Steam.lobby_chat_update.connect(_on_lobby_chat_update)
 	
 	Steam.lobby_joined.connect(_on_lobby_joined)
 	Steam.lobby_kicked.connect(_on_lobby_left)
