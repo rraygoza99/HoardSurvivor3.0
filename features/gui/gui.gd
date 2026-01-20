@@ -60,3 +60,7 @@ func _ready() -> void:
 func update_lobby_players(players_data: Dictionary):
 	lobbyMenu.lobbyPlayersList.update_player(players_data)
 	pass
+func set_owner_mode(is_owner: bool) -> void:
+	# Asumiendo que $LobbyMenu es el hijo
+	$LobbyMenu.set_owner_mode(is_owner)
+	pass

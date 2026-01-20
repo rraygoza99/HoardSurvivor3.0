@@ -83,6 +83,9 @@ func _on_lobby_created(connection: int, id: int):
 	
 	# Update the player list to show the selected character
 	_update_player_list()
+
+	# Check ownership
+	_update_owner_ui_state()
 	pass
 
 func _on_lobby_joined(targetLobbyId, _permissions, _locked, response):
@@ -98,6 +101,9 @@ func _on_lobby_joined(targetLobbyId, _permissions, _locked, response):
 	# Get the selected character from GameData
 	var selected_character = get_node("/root/GameData").get_selected_character()
 	player_characters[multiplayer.get_unique_id()] = selected_character
+
+	# Check ownership
+	_update_owner_ui_state()
 	
 	if lobbyOwnerId == Steam.getSteamID(): #No need to run logic below for host
 		player_list_changed.emit()
@@ -109,9 +115,9 @@ func _on_lobby_joined(targetLobbyId, _permissions, _locked, response):
 	
 	# Share the selected character with others in the lobby
 	update_player_character.rpc(selected_character)
-	
 	player_list_changed.emit()
 	pass
+
 func _on_lobby_left():
 	print("Left lobby..")
 	# Cleanup multiplayer peer
@@ -120,7 +126,32 @@ func _on_lobby_left():
 		peer = SteamMultiplayerPeer.new()
 	players.clear()
 	player_list_changed.emit()
+	if gui.has_method("set_owner_mode"):
+		gui.set_owner_mode(false)
 	pass
+
+func _on_lobby_chat_update(lobby_id: int, _changed_id: int, _making_change_id: int, _chat_state: int) -> void:
+	# Only care about updates in our current lobby
+	if lobby_id == lobbyId:
+		# Someone left or disconnected, potentially changing the owner. Re-check.
+		_update_owner_ui_state()
+
+func _update_owner_ui_state() -> void:
+	if lobbyId == 0:
+		if gui.has_method("set_owner_mode"):
+			gui.set_owner_mode(false)
+		return
+
+	var owner_id = Steam.getLobbyOwner(lobbyId)
+	var my_id = Steam.getSteamID()
+	var is_owner = (owner_id == my_id)
+	
+	# Call the UI to update the button visibility
+	# NOTE: We assume 'gui' script (or LobbyMenu) has this method.
+	if gui.has_method("set_owner_mode"):
+		gui.set_owner_mode(is_owner)
+	else:
+		print("Warning: 'gui' node does not implement 'set_owner_mode'")
 
 func _on_lobby_play_requested():
 	# Store the current character selection before starting game
