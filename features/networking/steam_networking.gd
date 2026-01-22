@@ -18,6 +18,7 @@ signal player_list_changed;
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	var init_response = Steam.steamInit(true, 3965800)
 	playerSteamName = Steam.getPersonaName()
 	gui.lobby_host_requested.connect(createSteamLobby)
 	gui.lobby_play_requested.connect(_on_lobby_play_requested)

@@ -11,17 +11,15 @@ signal enemy_teleport(position: Vector3);
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	Steam.steamInit(true, 3965800);
+	if networking.playerSteamId == 0:
+		networking.playerSteamId = Steam.getSteamID()
 	
-	networking.playerSteamId = Steam.getSteamID();
-	networking.playerSteamName = Steam.getPersonaName();
-	
-	Steam.requestLobbyList();
+	Steam.requestLobbyList()
 	pass # Replace with function body.
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
-	pass
+	Steam.run_callbacks()
 
 func start_game():
 	if not multiplayer.is_server():
@@ -87,8 +85,8 @@ func load_player(peerId: int, startPos: Vector3):
 		packedPlayer = load("res://features/player/characters/scenes/Wizgod.tscn")
 	
 	var playerScene: Node3D = packedPlayer.instantiate()
-	playerScene.name = str(peerId) + "_" + character_name  # Add character name to the node name
-	playerScene.MultiplayerAuthority = peerId
+	playerScene.name = str(peerId) # Add character name to the node name
+	playerScene.MultiplayerAuthority = str(peerId)
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	
@@ -130,8 +128,8 @@ func spawn_player(steamName: String, startPos: Vector3, character_name: String =
 		packedPlayer = load("res://features/player/characters/scenes/Wizgod.tscn")
 	
 	var playerScene: Node3D = packedPlayer.instantiate()
-	playerScene.name = str(senderId) + "_" + character_name  # Add character name to the node name
-	playerScene.MultiplayerAuthority = senderId
+	playerScene.name = str(senderId) # Add character name to the node name
+	playerScene.MultiplayerAuthority = str(senderId)
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	pass

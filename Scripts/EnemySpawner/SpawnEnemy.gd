@@ -36,31 +36,31 @@ func _spawn_chaser_enemy():
 	if not enemy_pool:
 		print("EnemyPool not found!")
 		return
-    
+	
 	if enemy_pool.ActiveEnemyCount >= max_enemies:
 		return
-    
+	
 	# Get the player position
 	var player = get_tree().get_first_node_in_group("player")
 	if not player:
 		print("No player found for enemy spawning")
 		return
-    
+	
 	var player_position = player.global_position
 	var spawn_position = _get_random_spawn_position(player_position)
-    
+	
 	if spawn_position == Vector3.ZERO:
 		print("Failed to find valid spawn position")
 		return
-    
+	
 	var chaser_enemy = enemy_pool.GetChaser()
 	if not chaser_enemy:
 		print("Failed to get chaser from pool")
 		return
-    
+	
 	chaser_enemy.global_position = spawn_position
 	chaser_enemy.add_to_group("enemies")
-    
+	
 	# Spawn on all clients
 	spawn_chaser_rpc.rpc(spawn_position)
 	print("Spawned chaser enemy at: ", spawn_position, " (Active: ", enemy_pool.ActiveEnemyCount, ", Pooled: ", enemy_pool.PooledEnemyCount, ")")
