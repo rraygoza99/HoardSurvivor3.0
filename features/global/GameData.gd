@@ -137,3 +137,8 @@ func get_shared_xp_progress() -> Dictionary:
         "current_level": shared_current_level,
         "xp_percentage": float(shared_current_xp) / float(shared_xp_to_next_level) if shared_xp_to_next_level > 0 else 0.0
     }
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	Steam.run_callbacks()
+	pass

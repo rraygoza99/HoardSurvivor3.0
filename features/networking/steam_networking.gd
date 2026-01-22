@@ -39,7 +39,7 @@ func _ready() -> void:
 	pass # Replace with function body.
 
 func _process(_delta: float) -> void:
-	Steam.run_callbacks()
+	pass
 
 func createSteamSocketHost():
 	print("Creating host..")
