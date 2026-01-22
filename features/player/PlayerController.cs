@@ -669,7 +669,6 @@ public partial class PlayerController : CharacterBody3D
 
 		CastSpells();
 		//ActivatePassiveSpells();
-		// ADD THIS MISSING BATCH TIMER LOGIC:
 		_rpcBatchTimer += (float)delta;
 		if (_rpcBatchTimer >= RPC_BATCH_INTERVAL && _pendingSpells.Count > 0)
 		{

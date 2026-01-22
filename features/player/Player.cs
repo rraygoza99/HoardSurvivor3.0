@@ -53,7 +53,7 @@ public partial class Player : CharacterBody3D
 		set
 		{
 			_multiplayerAuthority = value;
-			SetMultiplayerAuthority(value);
+			//SetMultiplayerAuthority(value);
 		}
 	}
 	
