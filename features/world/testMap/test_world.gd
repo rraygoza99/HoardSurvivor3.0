@@ -8,6 +8,6 @@ class_name TestWorld
 @onready var fireballs: Node = $Fireballs
 @onready var magicWaves: Node = $MagicWaves
 @onready var orbitals: Node = $Orbitals
-@onready var xpOrbs: Node = $XPOrbs
+@onready var xpOrbs: Node = $XpOrbs
 
 
