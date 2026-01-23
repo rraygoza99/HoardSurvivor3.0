@@ -31,6 +31,7 @@ func start_game():
 	world.add_child(mapScene)
 
 	var spawnPositions: Array[Marker3D] = mapScene.spawnLocations;
+	spawnPositions.shuffle()
 
 	# Sort player IDs for consistent spawn assignment
 	var sorted_players := networking.players.keys()
@@ -40,8 +41,10 @@ func start_game():
 		var player = sorted_players[i]
 		if player != multiplayer.get_unique_id():
 			load_world.rpc_id(player)
+		
+		# Use shuffled spawn positions to ensure no duplicates
 		var startPos = spawnPositions[i % spawnPositions.size()].global_position
-		load_player.rpc_id(player, player, startPos)
+		load_player.rpc_id(player, startPos)
 		teleport_player.rpc_id(player, startPos)
 	pass
 	
