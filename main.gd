@@ -86,7 +86,7 @@ func load_player(peerId: int, startPos: Vector3):
 	
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(peerId) # Add character name to the node name
-	playerScene.set_multiplayer_authority(peerId)
+	playerScene.MultiplayerAuthority = str(peerId)
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	
@@ -129,7 +129,7 @@ func spawn_player(steamName: String, startPos: Vector3, character_name: String =
 	
 	var playerScene: Node3D = packedPlayer.instantiate()
 	playerScene.name = str(senderId) # Add character name to the node name
-	playerScene.set_multiplayer_authority(senderId)
+	playerScene.MultiplayerAuthority = str(senderId)
 	playerScene.StartPosition = startPos
 	world.addPlayer(playerScene)
 	pass

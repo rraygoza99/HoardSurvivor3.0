@@ -280,9 +280,16 @@ public partial class PlayerController : CharacterBody3D
 			GD.PrintErr("Could not load spell selection screen scene");
 		}
 		
+		// Load all upgrade resources
+		var upgradePool = LoadUpgradeResources();
+		
 		// Initialize upgrade manager
 		_upgradeManager = new UpgradeManager();
 		AddChild(_upgradeManager);
+		
+		// Set the upgrade pool in the manager
+		_upgradeManager.Set("_upgradePool", upgradePool);
+		GD.Print($"Loaded {upgradePool.Count} upgrades into manager");
 		
 		// Set the upgrade card scene reference
 		var upgradeCardScene = GD.Load<PackedScene>("res://features/player/xp/level_up/upgrade_card.tscn");
@@ -290,12 +297,9 @@ public partial class PlayerController : CharacterBody3D
 		{
 			_levelUpScreen.Set("_upgradeCardScene", upgradeCardScene);
 		}
-		
-		// Load all upgrade resources into the manager
-		LoadUpgradeResources();
 	}
 	
-	private void LoadUpgradeResources()
+	private Godot.Collections.Array<Upgrade> LoadUpgradeResources()
 	{
 		var upgradePool = new Godot.Collections.Array<Upgrade>();
 		
@@ -358,9 +362,7 @@ public partial class PlayerController : CharacterBody3D
 			}
 		}
 		
-		// Set the upgrade pool in the manager
-		_upgradeManager.Set("_upgradePool", upgradePool);
-		GD.Print($"Loaded {upgradePool.Count} upgrades into manager");
+		return upgradePool;
 	}
 	
 	private void SyncWithSharedXP()
