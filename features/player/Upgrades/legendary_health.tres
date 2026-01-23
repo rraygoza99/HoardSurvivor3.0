@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://dp0pj70l4crbj"]
 
-[ext_resource type="Script" uid="uid://bujpibpep1yxw" path="res://features/player/xp/level_up/Upgrade.cs" id="1_ax02e"]
+[ext_resource type="Script" uid="uid://bwgr6n2cfon26" path="res://features/player/xp/level_up/Upgrade.cs" id="1_ax02e"]
 
 [resource]
 script = ExtResource("1_ax02e")
@@ -9,4 +9,4 @@ Description = "Increase Max Health by 80"
 Rarity = 2
 StatToUpgrade = 0
 Value = 80.0
-metadata/_custom_type_script = "uid://bujpibpep1yxw"
+metadata/_custom_type_script = "uid://bwgr6n2cfon26"

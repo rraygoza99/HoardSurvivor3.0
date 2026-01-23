@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://cyu1gj04iionf"]
 
-[ext_resource type="Script" uid="uid://bujpibpep1yxw" path="res://features/player/xp/level_up/Upgrade.cs" id="1_0wwop"]
+[ext_resource type="Script" uid="uid://bwgr6n2cfon26" path="res://features/player/xp/level_up/Upgrade.cs" id="1_0wwop"]
 
 [resource]
 script = ExtResource("1_0wwop")
@@ -9,4 +9,4 @@ Description = ""
 Rarity = 2
 StatToUpgrade = 1
 Value = 0.16
-metadata/_custom_type_script = "uid://bujpibpep1yxw"
+metadata/_custom_type_script = "uid://bwgr6n2cfon26"

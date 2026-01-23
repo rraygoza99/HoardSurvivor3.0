@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://dsf702m2rktg1"]
 
-[ext_resource type="Script" uid="uid://bujpibpep1yxw" path="res://features/player/xp/level_up/Upgrade.cs" id="1_6ufga"]
+[ext_resource type="Script" uid="uid://bwgr6n2cfon26" path="res://features/player/xp/level_up/Upgrade.cs" id="1_6ufga"]
 
 [resource]
 script = ExtResource("1_6ufga")
@@ -9,4 +9,4 @@ Description = "Increase XP gain by 12%"
 Rarity = 0
 StatToUpgrade = 2
 Value = 0.12
-metadata/_custom_type_script = "uid://bujpibpep1yxw"
+metadata/_custom_type_script = "uid://bwgr6n2cfon26"

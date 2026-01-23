@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://tu6jkiitj6ee"]
 
-[ext_resource type="Script" uid="uid://bujpibpep1yxw" path="res://features/player/xp/level_up/Upgrade.cs" id="1_uwxfl"]
+[ext_resource type="Script" uid="uid://bwgr6n2cfon26" path="res://features/player/xp/level_up/Upgrade.cs" id="1_uwxfl"]
 
 [resource]
 script = ExtResource("1_uwxfl")
@@ -9,4 +9,4 @@ Description = "Increase critical chance by 3%"
 Rarity = 0
 StatToUpgrade = 5
 Value = 0.03
-metadata/_custom_type_script = "uid://bujpibpep1yxw"
+metadata/_custom_type_script = "uid://bwgr6n2cfon26"

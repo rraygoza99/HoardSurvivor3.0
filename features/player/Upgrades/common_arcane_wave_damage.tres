@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3 uid="uid://dwxe5hynscmtp"]
 
-[ext_resource type="Script" path="res://features/player/xp/level_up/Upgrade.cs" id="1_3ignf"]
+[ext_resource type="Script" uid="uid://bwgr6n2cfon26" path="res://features/player/xp/level_up/Upgrade.cs" id="1_3ignf"]
 
 [resource]
 script = ExtResource("1_3ignf")
@@ -9,4 +9,4 @@ Description = "Increase arcane wave damage by 9%"
 Rarity = 0
 StatToUpgrade = 11
 Value = 9.0
-metadata/_custom_type_script = "uid://bujpibpep1yxw"
+metadata/_custom_type_script = "uid://bwgr6n2cfon26"
